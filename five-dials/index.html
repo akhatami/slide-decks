@@ -1,0 +1,3521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Five Dials</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Onest:wght@400;500;700&family=Unbounded:wght@500;800&display=swap">
+<style>
+/* layout: one 1600x900 stage scaled to the screen, with a living particle field behind it */
+:root{
+  --bg:#04070D; --bg2:#0A1220; --panel:#0D1826; --line:#1D2D42;
+  --fg:#EAF3FA; --mute:#8598AE; --dim:#4B5E75;
+  --acc:#19C8F5; --acc-ink:#03202B; --hot:#FF8A5B;
+  --f-d:"Unbounded","Arial Black",system-ui,sans-serif;
+  --f-b:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-m:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  color-scheme:dark;
+}
+:root[data-room="bright"]{
+  --bg:#F2F6FA; --bg2:#E4ECF4; --panel:#FFFFFF; --line:#C6D3E0;
+  --fg:#06121E; --mute:#4A5C71; --dim:#8395A9;
+  --acc:#007BA8; --acc-ink:#FFFFFF; --hot:#CF4519;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-b);font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+
+/* ---------- deck ---------- */
+body.is-deck{overflow:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%;display:block}
+#deck{position:fixed;inset:0;overflow:hidden;user-select:none;cursor:default}
+#deck::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 75% 70% at 50% 46%,transparent 25%,color-mix(in srgb,var(--bg) 82%,transparent) 100%)}
+#stage{position:absolute;left:50%;top:50%;width:1600px;height:900px;transform:translate(-50%,-50%) scale(var(--s,1))}
+
+.slide{position:absolute;inset:0;padding:78px 110px 170px;display:flex;flex-direction:column;
+  opacity:0;visibility:hidden;pointer-events:none;transform:scale(.7);filter:blur(16px);
+  transition:opacity .5s ease,transform .85s var(--ease),filter .5s ease,visibility 0s .85s}
+.slide.past{transform:scale(1.85)}
+.slide.on{opacity:1;visibility:visible;pointer-events:auto;transform:none;filter:none;
+  transition:opacity .55s ease .14s,transform .9s var(--ease) .06s,filter .55s ease .14s,visibility 0s}
+
+.rise{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .8s var(--ease)}
+.slide.on .rise{opacity:1;transform:none;transition-delay:calc(var(--i,0)*90ms + .32s)}
+.w{display:inline-block;opacity:0;filter:blur(12px);transform:translateY(.28em);transition:opacity .5s ease,filter .5s ease,transform .7s var(--ease)}
+.slide.on .w{opacity:1;filter:none;transform:none;transition-delay:calc(var(--i,0)*38ms + .3s)}
+.hl{color:var(--acc)}
+
+.kick{font:600 20px/1 var(--f-m);letter-spacing:.14em;text-transform:uppercase;color:var(--acc);display:flex;align-items:center;gap:14px;min-height:20px}
+.kick::before{content:"";width:12px;height:12px;background:var(--acc);flex:none}
+.kick.hot{color:var(--hot)} .kick.hot::before{background:var(--hot)}
+.big{font:800 108px/1 var(--f-d);letter-spacing:-.025em;margin:0;text-wrap:balance}
+.say{font:500 60px/1.14 var(--f-d);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.sub{font:400 32px/1.35 var(--f-b);color:var(--mute);margin:0;max-width:1050px}
+.mono{font:400 20px/1.4 var(--f-m);color:var(--mute);letter-spacing:.04em}
+
+/* title + statements */
+.s-title{justify-content:center;gap:38px}
+.s-title .keys{position:absolute;left:110px;bottom:118px}
+.s-hands,.s-final{justify-content:center;gap:40px}
+.s-hands .say{font-size:76px;max-width:1280px}
+.s-final .big{font-size:104px}
+.eq{display:flex;gap:10px;align-items:flex-end;height:70px}
+.eq i{width:14px;background:var(--acc);height:20%;animation:eq 1.6s ease-in-out infinite;animation-delay:calc(var(--i)*-.19s);opacity:.85}
+@keyframes eq{0%,100%{height:18%}50%{height:100%}}
+
+/* chapter */
+.s-chapter{align-items:center;justify-content:flex-start;text-align:center}
+.s-chapter .kick{margin-top:92px}
+.word{position:absolute;left:0;right:0;top:290px;height:260px;line-height:260px;text-align:center;font-family:var(--f-d);font-weight:800;letter-spacing:-.01em;
+  color:color-mix(in srgb,var(--acc) 13%,transparent);text-shadow:0 0 60px color-mix(in srgb,var(--acc) 40%,transparent);opacity:0;transition:opacity 1.1s ease .9s}
+.slide.on .word{opacity:1}
+.s-chapter .sub{position:absolute;left:0;right:0;top:600px;max-width:none;font-size:36px;color:var(--fg)}
+
+/* poll */
+.s-poll{gap:30px}
+.s-poll .say{max-width:940px;font-size:58px}
+.s-poll .opts{display:flex;flex-direction:column;gap:9px;margin:2px 0 0;padding:0;list-style:none;max-width:900px}
+.s-poll .opts li{font:400 25px/1.3 var(--f-b);color:var(--mute);display:flex;gap:12px}
+.s-poll .opts li::before{content:"";width:8px;height:8px;border:2px solid var(--dim);margin-top:11px;flex:none}
+.count{position:absolute;left:110px;bottom:150px;display:flex;align-items:baseline;gap:22px}
+.count b{font:800 132px/.9 var(--f-d);color:var(--acc);font-variant-numeric:tabular-nums;letter-spacing:-.03em;min-width:1ch}
+.count span{font:400 26px/1.2 var(--f-m);color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
+.count b.bump{animation:bump .5s var(--ease)}
+@keyframes bump{0%{transform:scale(1.22);color:var(--hot)}100%{transform:none}}
+
+/* results */
+.s-results{gap:22px}
+.rhead{display:flex;justify-content:space-between;align-items:flex-end;gap:40px}
+.rhead h2{font:500 36px/1.15 var(--f-d);letter-spacing:-.015em;margin:14px 0 0;max-width:1080px;text-wrap:balance}
+.rhead .n{font:600 22px/1 var(--f-m);color:var(--mute);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;padding-bottom:6px}
+.rhead .n b{color:var(--fg);font-size:34px;font-variant-numeric:tabular-nums}
+.bars{display:flex;flex-direction:column;gap:14px;margin-top:14px;flex:1;justify-content:center;padding-right:170px}
+.bar{display:grid;grid-template-columns:470px minmax(0,1fr) 120px 64px;align-items:center;gap:22px}
+.bar .l{font:500 28px/1.15 var(--f-b);color:var(--fg);text-align:right}
+.bar .t{height:38px;background:color-mix(in srgb,var(--line) 70%,transparent);position:relative;overflow:hidden}
+.bar .t i{position:absolute;inset:0;background:var(--acc);transform-origin:left;transform:scaleX(var(--v,0));transition:transform 1s var(--ease);opacity:.55}
+.bar .p{font:800 36px/1 var(--f-d);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.bar .c{font:400 20px/1 var(--f-m);color:var(--mute);font-variant-numeric:tabular-nums}
+.bar.lead .t i{opacity:1;box-shadow:0 0 34px color-mix(in srgb,var(--acc) 70%,transparent)}
+.bar.lead .p{color:var(--acc)}
+.slide:not(.on) .bar .t i{transform:scaleX(0)}
+.cloud{position:relative;flex:1;margin:6px 150px 0 0}
+.cloud span{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--f-b);font-weight:700;line-height:1.18;color:var(--fg);
+  transition:transform 1s var(--ease),font-size .6s var(--ease),opacity .6s ease,color 1.6s ease;cursor:pointer}
+.cloud span.top{color:var(--acc)}
+.cloud span.one{color:color-mix(in srgb,var(--fg) 74%,transparent)}
+.cloud span.new{color:var(--hot);transition:transform 1s var(--ease),font-size .6s var(--ease),opacity .6s ease,color 0s}
+.cloud span.in{opacity:0}
+.empty{position:absolute;left:110px;right:110px;top:46%;text-align:center;font:400 26px/1.4 var(--f-m);color:var(--dim);letter-spacing:.06em}
+.more{position:absolute;right:270px;bottom:118px;font:400 18px/1 var(--f-m);color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+
+/* story */
+.s-story{justify-content:center;gap:34px;padding-left:330px}
+.ring{position:absolute;left:120px;top:50%;width:150px;height:150px;margin-top:-110px;border-radius:50%;border:3px solid var(--hot)}
+.ring::before,.ring::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--hot);animation:ring 2.4s ease-out infinite}
+.ring::after{animation-delay:1.2s}
+@keyframes ring{0%{transform:scale(1);opacity:.8}100%{transform:scale(2.1);opacity:0}}
+.s-story .say{max-width:1080px;font-size:62px}
+
+/* insight */
+.s-insight{justify-content:center;gap:44px}
+.s-insight .say{font-size:62px;max-width:1340px}
+.dia{display:flex;gap:16px;align-items:stretch;flex-wrap:wrap}
+.chip{border:2px solid var(--line);background:color-mix(in srgb,var(--panel) 82%,transparent);padding:18px 26px;display:flex;flex-direction:column;gap:8px;min-width:230px}
+.chip b{font:500 26px/1.15 var(--f-d);letter-spacing:-.01em}
+.chip small{font:400 19px/1.2 var(--f-m);color:var(--mute);letter-spacing:.05em;text-transform:uppercase}
+.chip.far{border-color:var(--acc)} .chip.far small{color:var(--acc)}
+.arrow{align-self:center;font:400 30px/1 var(--f-m);color:var(--dim)}
+
+/* try */
+.s-try{justify-content:center;gap:26px}
+.s-try .say{font-size:56px}
+.term{background:color-mix(in srgb,var(--panel) 90%,transparent);border:2px solid var(--line);padding:30px 36px;max-width:1280px;display:flex;flex-direction:column;gap:18px;margin-top:8px}
+.term::before{content:"prompt";font:600 16px/1 var(--f-m);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.term p{margin:0;font:400 33px/1.35 var(--f-m);color:var(--fg);padding-left:44px;position:relative}
+.term p::before{content:">";position:absolute;left:0;color:var(--acc);font-weight:600}
+.term .rest{color:transparent}
+.term .caret{display:inline-block;width:.55em;height:1.05em;background:var(--acc);vertical-align:-.16em;margin-left:2px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.note{font:400 26px/1.4 var(--f-b);color:var(--mute);max-width:1100px;border-left:3px solid var(--hot);padding-left:20px}
+
+/* recap */
+.s-recap{gap:20px}
+.s-recap{gap:14px}
+.s-recap h2{font:500 40px/1.1 var(--f-d);letter-spacing:-.02em;margin:8px 0 4px}
+.recap{display:flex;flex-direction:column;gap:6px;padding-right:160px}
+.recap{border-top:2px solid var(--line)}
+.rrow{display:grid;grid-template-columns:330px minmax(0,1fr) 190px;gap:28px;align-items:baseline;padding:10px 0 11px;border-bottom:2px solid var(--line);position:relative}
+.rrow .d{font:800 26px/1 var(--f-d);color:var(--acc)}
+.rrow .a{font:500 29px/1.2 var(--f-b)}
+.rrow .a small{display:block;font:400 17px/1.3 var(--f-m);color:var(--mute);letter-spacing:.04em;margin-top:2px}
+.rrow .v{font:800 38px/1 var(--f-d);text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.rrow::after{content:"";position:absolute;left:0;bottom:-2px;height:2px;width:calc(var(--v,0)*100%);background:var(--acc);transition:width 1.2s var(--ease) .5s}
+.slide:not(.on) .rrow::after{width:0}
+.xtab{font:400 24px/1.4 var(--f-b);color:var(--mute);border-left:3px solid var(--hot);padding-left:20px;margin:12px 0 0;max-width:1150px}
+.xtab b{color:var(--fg)}
+
+/* hud */
+#hud{position:absolute;left:110px;right:110px;bottom:44px;height:64px;display:flex;align-items:center;justify-content:space-between;pointer-events:none;transition:opacity .6s}
+.hl-l{display:flex;align-items:center;gap:18px}
+.knob{width:64px;height:64px;flex:none}
+.knob .needle{transform-origin:32px 32px;transform:rotate(var(--ang,-165deg));transition:transform 1.1s var(--ease)}
+.knob circle.dot{fill:var(--dim);transition:fill .5s}
+.knob circle.dot.lit{fill:var(--acc)}
+#hudDial{font:600 18px/1 var(--f-m);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.hl-r{display:flex;align-items:center;gap:26px;margin-right:158px;font:400 18px/1 var(--f-m);letter-spacing:.08em;color:var(--mute);text-transform:uppercase;font-variant-numeric:tabular-nums;transition:margin .9s var(--ease)}
+#deck[data-qr="off"] .hl-r,#deck[data-qr="side"] .hl-r{margin-right:0}
+.dot-s{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--dim);margin-right:10px;vertical-align:1px}
+.dot-s.ok{background:var(--acc);box-shadow:0 0 12px var(--acc)}
+#hudTime.over{color:var(--hot)}
+#hudDemo{color:var(--hot);font-weight:600}
+#hudHint{color:var(--dim)}
+
+/* qr */
+#qr{position:absolute;right:110px;bottom:40px;width:136px;height:136px;background:#F4FAFF;padding:9px;z-index:5;
+  transition:right .9s var(--ease),bottom .9s var(--ease),width .9s var(--ease),height .9s var(--ease),opacity .5s ease,padding .9s var(--ease),box-shadow .9s}
+#qr svg{display:block;width:100%;height:100%}
+#qr .cap{position:absolute;left:0;right:0;top:100%;padding-top:16px;text-align:center;font:600 20px/1.35 var(--f-m);letter-spacing:.1em;text-transform:uppercase;color:var(--fg);opacity:0;transition:opacity .4s}
+#qr .cap small{display:block;color:var(--mute);font-weight:400;letter-spacing:.04em;text-transform:none;font-size:18px;margin-top:4px}
+#qr .cap .warn{color:var(--hot)}
+#deck[data-qr="off"] #qr{opacity:0;pointer-events:none}
+#deck[data-qr="side"] #qr{right:110px;bottom:372px;width:400px;height:400px;padding:22px;box-shadow:0 0 90px color-mix(in srgb,var(--acc) 34%,transparent)}
+#deck[data-qr="side"] #qr .cap{opacity:1;transition-delay:.6s}
+#deck.hero #qr{right:500px;bottom:230px;width:600px;height:600px;padding:32px;opacity:1;pointer-events:auto;box-shadow:0 0 0 2000px color-mix(in srgb,var(--bg) 90%,transparent)}
+#deck.hero #qr .cap{opacity:1}
+
+/* panel */
+#panel{position:fixed;inset:0;z-index:20;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(10px);overflow:auto;padding:28px clamp(16px,4vw,56px) 60px;user-select:text;cursor:auto}
+.pn{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
+.pn-h{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.pn-h h1{font:500 26px/1.1 var(--f-d);margin:0;letter-spacing:-.01em}
+.pn h2{font:600 14px/1 var(--f-m);letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin:0 0 12px}
+.btn{border:1.5px solid var(--line);background:var(--panel);padding:9px 16px;font:500 15px/1.2 var(--f-b);border-radius:2px}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700}
+.btn.warn{border-color:var(--hot);color:var(--hot)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.tile{border:1.5px solid var(--line);background:var(--panel);padding:16px 18px}
+.tile b{display:block;font:800 34px/1 var(--f-d);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tile span{font:400 13px/1.3 var(--f-m);color:var(--mute);letter-spacing:.08em;text-transform:uppercase;display:block;margin-top:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.card{border:1.5px solid var(--line);background:var(--panel);padding:18px 20px;min-width:0}
+.card h3{font:700 17px/1.3 var(--f-b);margin:0 0 4px}
+.card .meta{font:400 13px/1.3 var(--f-m);color:var(--mute);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.mb{display:grid;grid-template-columns:minmax(0,1fr) 90px 74px;gap:10px;align-items:center;font-size:14px;padding:4px 0}
+.mb .t{grid-column:1/-1;height:5px;background:var(--line);position:relative}
+.mb .t i{position:absolute;inset:0;background:var(--acc);transform-origin:left;transform:scaleX(var(--v,0))}
+.mb .p{text-align:right;font:600 14px/1 var(--f-m);font-variant-numeric:tabular-nums}
+.mb .c{text-align:right;font:400 13px/1 var(--f-m);color:var(--mute);font-variant-numeric:tabular-nums}
+.words{display:flex;flex-wrap:wrap;gap:6px}
+.words button{border:1.5px solid var(--line);background:transparent;padding:4px 9px;font-size:14px;border-radius:2px}
+.words button.off{text-decoration:line-through;color:var(--dim)}
+.words button b{font:600 12px/1 var(--f-m);color:var(--acc);margin-left:6px}
+table.x{border-collapse:collapse;font-size:14px;width:100%}
+table.x th,table.x td{border:1px solid var(--line);padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums}
+table.x th{font-weight:500;color:var(--mute);text-align:left}
+table.x td.z{color:var(--dim)}
+.xwrap{overflow-x:auto}
+.field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:min(100%,280px)}
+.field label{font:400 13px/1.3 var(--f-m);color:var(--mute);letter-spacing:.06em;text-transform:uppercase}
+.field input,.pn select{background:var(--bg);border:1.5px solid var(--line);padding:9px 12px;border-radius:2px;min-width:0;width:100%}
+.pn select{width:auto;max-width:100%}
+.help{font-size:14px;color:var(--mute);margin:0;max-width:78ch}
+.help code,pre.code{font-family:var(--f-m);font-size:13px;color:var(--fg)}
+pre.code{background:var(--bg);border:1.5px solid var(--line);padding:10px 12px;margin:8px 0 0;overflow-x:auto;user-select:all}
+.link{font:400 14px/1.4 var(--f-m);word-break:break-all;color:var(--fg);user-select:all}
+.keysl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;font-size:14px;color:var(--mute)}
+kbd{font:600 13px/1 var(--f-m);border:1.5px solid var(--line);padding:3px 7px;color:var(--fg);margin-right:8px;border-radius:2px}
+
+/* ---------- phone ---------- */
+body.is-phone{overflow-x:hidden;overflow-y:auto;background:
+  linear-gradient(color-mix(in srgb,var(--acc) 7%,transparent) 1px,transparent 1px) 0 0/100% 44px,
+  linear-gradient(90deg,color-mix(in srgb,var(--acc) 7%,transparent) 1px,transparent 1px) 0 0/44px 100%,
+  radial-gradient(ellipse 120% 60% at 50% 0%,color-mix(in srgb,var(--acc) 16%,var(--bg)),var(--bg) 70%) fixed}
+#phone{min-height:100%;max-width:560px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top,0px)) 18px calc(26px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+.ph-top{display:flex;justify-content:space-between;align-items:center}
+.ph-brand{font:800 15px/1 var(--f-d);letter-spacing:.02em}
+.ph-live{font:600 12px/1 var(--f-m);letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+.ph-live::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--acc);margin-right:8px;animation:blink 1.4s steps(2) infinite}
+.ph-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.ph-steps button{height:40px;border:1.5px solid var(--line);background:color-mix(in srgb,var(--panel) 80%,transparent);font:600 14px/1 var(--f-m);color:var(--mute);border-radius:2px;padding:0}
+.ph-steps button.done{color:var(--acc-ink);background:var(--acc);border-color:var(--acc)}
+.ph-steps button.cur{border-color:var(--fg);color:var(--fg)}
+.ph-steps button.done.cur{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--fg)}
+.ph-card{background:color-mix(in srgb,var(--panel) 92%,transparent);border:1.5px solid var(--line);padding:22px 18px 20px;display:flex;flex-direction:column;gap:16px;animation:pin .5s var(--ease)}
+@keyframes pin{from{opacity:0;transform:translateY(16px) scale(.98)}}
+.ph-card .lab{font:600 13px/1 var(--f-m);letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+.ph-card h1{font:500 24px/1.2 var(--f-d);letter-spacing:-.015em;margin:0;text-wrap:balance}
+.ph-card .hint{font-size:15px;color:var(--mute);margin:-6px 0 0}
+.ph-opts{display:flex;flex-direction:column;gap:9px}
+.ph-opts button{min-height:56px;text-align:left;padding:12px 16px;border:1.5px solid var(--line);background:var(--bg);font:500 17px/1.25 var(--f-b);border-radius:2px;display:flex;gap:12px;align-items:center}
+.ph-opts button::before{content:"";width:18px;height:18px;border:2px solid var(--dim);flex:none;border-radius:50%}
+.ph-opts.multi button::before{border-radius:2px}
+.ph-opts button.sel{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 14%,var(--bg))}
+.ph-opts button.sel::before{background:var(--acc);border-color:var(--acc);box-shadow:inset 0 0 0 3px var(--bg)}
+.ph-text{min-height:56px;width:100%;padding:12px 16px;border:1.5px solid var(--line);background:var(--bg);font:500 19px/1.2 var(--f-b);border-radius:2px}
+.ph-text:focus{border-color:var(--acc);outline:none}
+.ph-send{min-height:58px;border:0;background:var(--acc);color:var(--acc-ink);font:800 17px/1 var(--f-d);letter-spacing:.01em;border-radius:2px}
+.ph-send:disabled{background:var(--line);color:var(--dim);cursor:default}
+.ph-next{min-height:54px;border:1.5px solid var(--fg);background:transparent;font:500 16px/1 var(--f-d);border-radius:2px}
+.ph-ok{display:flex;gap:14px;align-items:center;font:500 20px/1.2 var(--f-d)}
+.ph-ok i{width:38px;height:38px;border-radius:50%;background:var(--acc);flex:none;position:relative;animation:pop .5s var(--ease)}
+.ph-ok i::after{content:"";position:absolute;left:13px;top:8px;width:9px;height:16px;border:solid var(--acc-ink);border-width:0 3.5px 3.5px 0;transform:rotate(42deg)}
+.ph-ok.wait i{background:var(--dim);animation:blink 1s steps(2) infinite} .ph-ok.wait i::after{display:none}
+@keyframes pop{from{transform:scale(.3)}}
+.ph-said{font-size:16px;color:var(--mute);margin:0;overflow-wrap:anywhere}
+.ph-said b{color:var(--fg);font-weight:500}
+.ph-err{color:var(--hot);font-size:15px;margin:0}
+.ph-pill{position:sticky;bottom:14px;align-self:center;border:0;background:var(--hot);color:#1b0a03;font:700 15px/1 var(--f-b);padding:13px 20px;border-radius:40px}
+.ph-foot{margin-top:auto;font:400 12px/1.4 var(--f-m);color:var(--dim);letter-spacing:.06em;text-align:center}
+
+@media (prefers-reduced-motion:reduce){
+  .slide,.slide.on,.rise,.w,.bar .t i,.cloud span,#qr,.knob .needle{transition-duration:.01s!important;transition-delay:0s!important}
+  .eq i,.ring::before,.ring::after,.ph-card{animation:none}
+}
+:root[data-calm] .slide,:root[data-calm] .slide.on{transform:none;filter:none;transition:opacity .3s ease,visibility 0s}
+:root[data-calm] .w,:root[data-calm] .rise{filter:none;transform:none;transition:opacity .3s ease;transition-delay:.1s!important}
+</style>
+</head>
+<body>
+<canvas id="bg" hidden></canvas>
+
+<div id="deck" hidden data-qr="off">
+  <div id="stage">
+    <div id="hud">
+      <div class="hl-l">
+        <svg class="knob" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="17" fill="none" stroke="var(--mute)" stroke-width="2"/>
+          <g id="knobDots"></g>
+          <line class="needle" x1="32" y1="32" x2="32" y2="18" stroke="var(--acc)" stroke-width="3.5" stroke-linecap="square"/>
+        </svg>
+        <span id="hudDial">Five Dials</span>
+      </div>
+      <div class="hl-r">
+        <span id="hudDemo" hidden>Demo data</span>
+        <span id="hudHint"></span>
+        <span id="hudTime" hidden>00:00</span>
+        <span><i class="dot-s" id="hudDot"></i><span id="hudPhones">0 phones</span></span>
+      </div>
+    </div>
+    <div id="qr"><div id="qrSvg"></div><div class="cap"><span id="qrCap">Scan to answer</span><small id="qrSub">No app. No login.</small></div></div>
+  </div>
+  <div id="panel" hidden></div>
+</div>
+
+<div id="phone" hidden>
+  <header class="ph-top"><span class="ph-brand">FIVE DIALS</span><span class="ph-live" id="phLive" hidden>Following the screen</span></header>
+  <nav class="ph-steps" id="phSteps" aria-label="Polls"></nav>
+  <main id="phMain"></main>
+  <footer class="ph-foot">No names. No login. Answers show up on the big screen.</footer>
+</div>
+
+<script>//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(row * cellSize, col * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+</script>
+<script>
+(() => {
+'use strict';
+
+/* ================= configuration ================= */
+const CONFIG = {
+  // Paste a Firebase Realtime Database URL here (or in the results panel) for big rooms.
+  // Empty = the zero-setup relay below, which is fine for trying it and for small rooms.
+  firebaseUrl: '',
+  relayServer: 'https://ntfy.sh',
+};
+
+/* ================= content ================= */
+const POLLS = {
+  p1:  { type:'cloud',  q:'The last thing you asked it, in three words.', hint:'Three words. No names.', max:32 },
+  p1b: { type:'single', q:'It’s mostly my…', opts:['Search engine','Editor','Coding buddy','Tutor','Thinking partner','Employee'] },
+  p2:  { type:'multi',  q:'Where does it live for you?', hint:'Pick all that apply.', opts:['Browser tab','Desktop app','Phone or voice','In my editor','Terminal (Claude Code, Codex)','Inside other tools (Overleaf, Notion, Word)'] },
+  p2b: { type:'single', q:'How does your work get into it?', hint:'Pick the furthest you go.', opts:['Copy-paste','I upload files','It reads my folder','It runs things on my machine'] },
+  p3:  { type:'single', q:'New task. What do you do?', opts:['Continue my endless chat','New chat every time','New chat plus a pasted summary','A project with files and instructions','Never thought about it'] },
+  p3b: { type:'single', q:'The chat goes off the rails. You…', opts:['Argue with it','Edit my earlier message','Start over','Ask for a summary, move to a fresh chat'] },
+  p4:  { type:'single', q:'What’s the furthest you’ve gone?', hint:'Pick the highest one you’ve done.', opts:['Never asked it how to use it','Asked it to improve my prompt','Had it write a prompt, then used that prompt','Had it interview me before starting','Saved reusable instructions or skills'] },
+  p5:  { type:'single', q:'Longest it has worked for you without you watching?', opts:['Seconds','A few minutes','Half an hour','Hours or overnight','It runs on a schedule'] },
+  p5b: { type:'cloud',  q:'One thing you’d never let it do.', hint:'A few words.', max:32 },
+  p6:  { type:'cloud',  q:'One thing you’ll try this week.', hint:'A few words.', max:32 },
+};
+const ORDER = ['p1','p1b','p2','p2b','p3','p3b','p4','p5','p5b','p6'];
+const LABEL = { p1:'1', p1b:'1+', p2:'2', p2b:'2+', p3:'3', p3b:'3+', p4:'4', p5:'5', p5b:'5+', p6:'6' };
+
+const DIALS = [
+  { word:'WHAT', ask:'What do we actually ask it?', poll:'p1', bonus:'p1b', until:270,
+    story:'Who has a use they’re slightly embarrassed by, or weirdly proud of?',
+    insight:'Most of us ask it to *answer* or to *fix*. It can also *think with you* and *do the work*.',
+    dia:[['Answer me','the usual'],['Fix this','the usual'],['Think with me','further',1],['Do it for me','further',1]],
+    tryTitle:'Flip the direction', trySub:'Make it ask the questions.',
+    prompts:['Interview me about my chapter, one question at a time. Then write the outline.','Play the committee member who hates my method.'] },
+  { word:'WHERE', ask:'Where does it live?', poll:'p2', bonus:'p2b', until:480,
+    story:'Terminal people: what did it do that a chat tab couldn’t?',
+    insight:'The interface decides the capability. In a tab it can only *talk*. In your folder it can *act*.',
+    dia:[['In a browser tab','it talks'],['In your folder','it acts',1]],
+    tryTitle:'Point it at the folder', trySub:'Not a pasted paragraph. The whole thesis.',
+    prompts:['Find every figure whose caption contradicts the text.'] },
+  { word:'MEMORY', ask:'What happens to the context?', poll:'p3', bonus:'p3b', until:690,
+    story:'Who has one chat that’s months old?',
+    insight:'History is not memory. Long chats get *worse*. What matters should live in *a file*, not in the scroll.',
+    dia:[['The scroll','fades'],['A file or a project','stays',1]],
+    tryTitle:'The handoff', trySub:'When a chat gets long, move out.',
+    prompts:['Summarize what a fresh chat needs to continue this.'] },
+  { word:'META', ask:'Do you ask it how to use it?', poll:'p4', until:870,
+    story:'What’s the best thing it taught you about itself?',
+    insight:'It changes every month. The only current manual is *the tool itself*.',
+    dia:[['Your goal','start'],['“What do you need from me?”','it asks'],['It writes the brief','it drafts'],['Run it in a fresh chat','clean context',1]],
+    tryTitle:'The loop', trySub:'Let it write the prompt you would have written badly.',
+    prompts:['Here is my goal. Ask me what you need, then write the prompt for a fresh chat.'],
+    note:'It is often out of date about its own newest features. Tell it to check the docs.' },
+  { word:'DELEGATION', ask:'How long do you let it run?', poll:'p5', bonus:'p5b', until:1050,
+    story:'How did you check the work?',
+    insight:'The skill moves from *prompting* to *briefing and checking*.',
+    dia:[['Prompting','one good question'],['Delegating','a brief, then a check',1]],
+    tryTitle:'Trust is a workflow', trySub:'Three cheap checks.',
+    prompts:['Show me the source for every claim.','Fresh chat: review this as a skeptical co-author.','Run it. Then show me the output.'] },
+];
+const CLOSE_UNTIL = 1140;
+
+/* ================= helpers ================= */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  if (attrs) for (const k in attrs) {
+    const v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k === 'style') e.style.cssText = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const k of kids.flat(Infinity)) if (k != null && k !== false) e.append(k.nodeType ? k : document.createTextNode(k));
+  return e;
+}
+const add = (el, ...kids) => { for (const k of kids.flat(Infinity)) if (k != null && k !== false) el.appendChild(k.nodeType ? k : document.createTextNode(k)); return el; };
+const ls = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+const ABC = 'abcdefghjkmnpqrstuvwxyz23456789';
+const rid = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => ABC[b % ABC.length]).join('');
+const b64e = s => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = s => { try { return atob(s.replace(/-/g, '+').replace(/_/g, '/')); } catch { return ''; } };
+const hash = s => { let x = 2166136261; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return x >>> 0; };
+const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
+const LOCAL = !/^https?:$/.test(location.protocol) || /^(localhost|127\.|\[::1\])/.test(location.hostname);
+function cleanFb(u) {
+  u = String(u || '').trim().replace(/\/+$/, '');
+  if (!u) return '';
+  try {
+    const x = new URL(u);
+    const okHost = /(\.firebaseio\.com|\.firebasedatabase\.app)$/.test(x.hostname) || (LOCAL && /^(localhost|127\.0\.0\.1)$/.test(x.hostname));
+    if (!okHost || (x.protocol !== 'https:' && !LOCAL)) return '';
+    return x.origin + x.pathname.replace(/\/+$/, '');
+  } catch { return ''; }
+}
+const JUNK = new RegExp('[' + [[0, 31], [127, 127], [0x200b, 0x200f], [0x2028, 0x202f], [0xfeff, 0xfeff]].map(([a, b]) => '\\u' + a.toString(16).padStart(4, '0') + '-\\u' + b.toString(16).padStart(4, '0')).join('') + ']', 'g');
+const normText = s => String(s).replace(JUNK, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+
+/* an answer is {d: device, p: poll id, v: string}. v is an option index, a comma list of indexes, or text */
+function checkAnswer(a) {
+  if (!a || typeof a !== 'object') return null;
+  const d = String(a.d || ''), p = String(a.p || ''); let v = a.v;
+  if (!/^[a-z0-9]{6,16}$/.test(d) || !Object.hasOwn(POLLS, p) || (typeof v !== 'string' && typeof v !== 'number')) return null;
+  v = String(v); const P = POLLS[p];
+  if (P.type === 'cloud') { v = normText(v).slice(0, P.max || 32); if (!v) return null; }
+  else {
+    const ix = [...new Set(v.split(',').map(Number))];
+    if (!ix.length || ix.some(i => !Number.isInteger(i) || i < 0 || i >= P.opts.length)) return null;
+    if (P.type === 'single' && ix.length !== 1) return null;
+    v = ix.sort((x, y) => x - y).join(',');
+  }
+  const t = Number(a.t) > 1e12 ? Number(a.t) : Date.now();
+  return { d, p, v, t };
+}
+
+/* ================= transport: phones -> deck ================= */
+function makeTransport(fb, room) {
+  if (fb) {
+    const base = `${fb}/rooms/${room}`;
+    return {
+      kind: 'Firebase', sync: true,
+      send: a => fetch(`${base}/a/${a.d}/${a.p}.json`, { method: 'PUT', body: JSON.stringify({ v: a.v, t: Date.now() }) }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); }),
+      listen(on, status) {
+        let stop = false, timer;
+        const tick = async () => {
+          try {
+            const r = await fetch(`${base}/a.json`, { cache: 'no-store' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const j = (await r.json()) || {};
+            for (const d in j) for (const p in (j[d] || {})) { const x = j[d][p]; if (x) on({ d, p, v: x.v, t: x.t }); }
+            status(true);
+          } catch { status(false); }
+          if (!stop) timer = setTimeout(tick, 2000);
+        };
+        tick();
+        return () => { stop = true; clearTimeout(timer); };
+      },
+      setState: s => fetch(`${base}/s.json`, { method: 'PUT', body: JSON.stringify(s) }).catch(() => {}),
+      watchState(on) {
+        let stop = false, timer;
+        const tick = async () => {
+          try { const r = await fetch(`${base}/s.json`, { cache: 'no-store' }); if (r.ok) on(await r.json()); } catch {}
+          if (!stop) timer = setTimeout(tick, 3000);
+        };
+        tick();
+        return () => { stop = true; clearTimeout(timer); };
+      },
+    };
+  }
+  const url = `${CONFIG.relayServer}/fivedials-${room}`;
+  return {
+    kind: 'Relay', sync: false,
+    send: a => fetch(url, { method: 'POST', body: JSON.stringify({ d: a.d, p: a.p, v: a.v }) }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); }),
+    listen(on, status) {
+      let stop = false, es = null, live = false, timer, lastOk = 0;
+      const take = m => { try { if (m && m.event === 'message') { const a = JSON.parse(m.message); a.t = m.time * 1000; on(a); } } catch {} };
+      // history, and a safety net when the live stream is blocked
+      const sweep = async () => {
+        try {
+          const r = await fetch(`${url}/json?poll=1&since=all`, { cache: 'no-store' });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          (await r.text()).split('\n').forEach(l => { if (l.trim()) { try { take(JSON.parse(l)); } catch {} } });
+          lastOk = Date.now(); status(true);
+        } catch { if (!live) status(false); }
+        if (!stop) timer = setTimeout(sweep, live ? 30000 : 8000);
+      };
+      try {
+        es = new EventSource(`${url}/sse`);
+        es.onopen = () => { live = true; status(true); };
+        es.onmessage = e => { live = true; try { take(JSON.parse(e.data)); } catch {} };
+        es.onerror = () => { live = false; if (Date.now() - lastOk > 20000) status(false); };
+      } catch {}
+      sweep();
+      return () => { stop = true; clearTimeout(timer); if (es) es.close(); };
+    },
+    setState() {}, watchState() { return () => {}; },
+  };
+}
+
+/* ================= boot: phone or deck ================= */
+const jm = location.hash.match(/^#j\.([a-z0-9]{4,12})(?:\.([\w-]+))?$/);
+if (jm) startPhone(jm[1], cleanFb(b64d(jm[2] || '')) || cleanFb(CONFIG.firebaseUrl));
+else startDeck();
+
+/* ================================================================
+   PHONE
+   ================================================================ */
+function startPhone(room, fb) {
+  document.body.classList.add('is-phone');
+  $('#phone').hidden = false;
+  const T = makeTransport(fb, room);
+  const KEY = 'fd:ph:' + room;
+  const st = ls.get(KEY, null) || { dev: rid(10), sent: {} };
+  const save = () => ls.set(KEY, st);
+  save();
+  let cur = ORDER.findIndex(p => !st.sent[p]);
+  if (cur < 0) cur = ORDER.length - 1;
+  let livePoll = null, draft = {}, touched = false;
+  const main = $('#phMain'), steps = $('#phSteps');
+
+  function sayOf(p, v) {
+    const P = POLLS[p];
+    return P.type === 'cloud' ? v : v.split(',').map(i => P.opts[+i]).join(', ');
+  }
+  async function flush(p, tries = 0) {
+    const s = st.sent[p]; if (!s || s.ok) return;
+    try { await T.send({ d: st.dev, p, v: s.v }); s.ok = true; s.err = false; save(); }
+    catch { s.err = tries >= 5; save(); if (tries < 5) setTimeout(() => flush(p, tries + 1), 1500 * (tries + 1)); }
+    if (ORDER[cur] === p) render();
+  }
+  function submit(p, v) {
+    st.sent[p] = { v, ok: false }; save(); touched = false; delete draft[p];
+    render(); flush(p);
+  }
+  function goTo(i) { cur = Math.max(0, Math.min(ORDER.length - 1, i)); touched = false; render(); scrollTo({ top: 0 }); }
+
+  function render() {
+    const p = ORDER[cur], P = POLLS[p], s = st.sent[p];
+    steps.replaceChildren(...ORDER.map((id, i) => h('button', {
+      class: (st.sent[id] ? 'done ' : '') + (i === cur ? 'cur' : ''), text: LABEL[id],
+      'aria-label': 'Poll ' + LABEL[id], 'aria-current': i === cur ? 'step' : null, onclick: () => goTo(i),
+    })));
+    const card = h('section', { class: 'ph-card' }, h('div', { class: 'lab', text: 'Poll ' + LABEL[p] }), h('h1', { text: P.q }));
+    if (s) {
+      add(card, 
+        h('div', { class: 'ph-ok' + (s.ok ? '' : ' wait') }, h('i'), s.ok ? 'Sent. Look up.' : (s.err ? 'Not sent yet' : 'Sending…')),
+        h('p', { class: 'ph-said' }, 'You said: ', h('b', { text: sayOf(p, s.v) })),
+        s.err && h('p', { class: 'ph-err', text: 'The network dropped it. Your answer is saved on this phone.' }),
+        s.err && h('button', { class: 'ph-next', text: 'Try again', onclick: () => { s.err = false; render(); flush(p); } }),
+        cur < ORDER.length - 1
+          ? h('button', { class: 'ph-next', text: 'Next question', onclick: () => goTo(cur + 1) })
+          : h('p', { class: 'ph-said', text: 'That was the last one. Thank you.' }),
+      );
+    } else if (P.type === 'cloud') {
+      const send = h('button', { class: 'ph-send', text: 'Send', disabled: true });
+      const inp = h('input', { class: 'ph-text', id: 'phText', type: 'text', maxlength: P.max, placeholder: 'Type here', autocomplete: 'off', autocapitalize: 'none', enterkeyhint: 'send', 'aria-label': P.q });
+      inp.value = draft[p] || '';
+      const upd = () => { draft[p] = inp.value; touched = !!inp.value.trim(); send.disabled = !normText(inp.value); };
+      inp.addEventListener('input', upd); upd();
+      const go = () => { const v = normText(inp.value).slice(0, P.max); if (v) submit(p, v); };
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+      send.addEventListener('click', go);
+      add(card, P.hint && h('p', { class: 'hint', text: P.hint }), inp, send);
+    } else {
+      const multi = P.type === 'multi';
+      const sel = new Set(draft[p] || []);
+      const send = h('button', { class: 'ph-send', text: 'Send', disabled: !sel.size });
+      const box = h('div', { class: 'ph-opts' + (multi ? ' multi' : ''), role: multi ? 'group' : 'radiogroup' });
+      P.opts.forEach((o, i) => {
+        const b = h('button', { text: o, class: sel.has(i) ? 'sel' : '', role: multi ? 'checkbox' : 'radio', 'aria-checked': String(sel.has(i)) });
+        b.addEventListener('click', () => {
+          if (multi) { sel.has(i) ? sel.delete(i) : sel.add(i); } else { sel.clear(); sel.add(i); }
+          draft[p] = [...sel]; touched = sel.size > 0;
+          [...box.children].forEach((c, j) => { c.classList.toggle('sel', sel.has(j)); c.setAttribute('aria-checked', String(sel.has(j))); });
+          send.disabled = !sel.size;
+        });
+        box.append(b);
+      });
+      send.addEventListener('click', () => { if (sel.size) submit(p, [...sel].sort((a, b) => a - b).join(',')); });
+      add(card, P.hint && h('p', { class: 'hint', text: P.hint }), box, send);
+    }
+    const kids = [card];
+    if (livePoll && livePoll !== p && !st.sent[livePoll]) kids.push(h('button', { class: 'ph-pill', text: 'Go to the live question (' + LABEL[livePoll] + ')', onclick: () => goTo(ORDER.indexOf(livePoll)) }));
+    main.replaceChildren(...kids);
+  }
+
+  if (T.sync) {
+    $('#phLive').hidden = false;
+    T.watchState(s => {
+      const lp = s && Object.hasOwn(POLLS, s.p) ? s.p : null;
+      if (lp === livePoll) return;
+      livePoll = lp;
+      if (lp && lp !== ORDER[cur] && !touched) goTo(ORDER.indexOf(lp)); else render();
+    });
+  }
+  ORDER.forEach(p => { if (st.sent[p] && !st.sent[p].ok) flush(p); });
+  render();
+}
+
+/* ================================================================
+   DECK
+   ================================================================ */
+function startDeck() {
+  document.body.classList.add('is-deck');
+  const deck = $('#deck'), stage = $('#stage');
+  deck.hidden = false; $('#bg').hidden = false;
+  const root = document.documentElement;
+
+  /* ---- session ---- */
+  const cfg = Object.assign({ room: rid(7), fb: cleanFb(CONFIG.firebaseUrl), bright: false, hidden: [] }, ls.get('fd:cfg', {}));
+  cfg.fb = cleanFb(cfg.fb);
+  const saveCfg = () => ls.set('fd:cfg', cfg);
+  saveCfg();
+  if (cfg.bright) root.dataset.room = 'bright';
+  const hiddenWords = new Set(cfg.hidden);
+  const joinUrl = () => location.href.split('#')[0] + '#j.' + cfg.room + (cfg.fb ? '.' + b64e(cfg.fb) : '');
+
+  /* ---- answers ---- */
+  const store = new Map();            // "device|poll" -> {d,p,v,t,demo}
+  let demoOn = false, connected = false, dirty = false;
+  const firstSeen = new Map();
+  (ls.get('fd:a:' + cfg.room, []) || []).forEach(a => { const c = checkAnswer(a); if (c) store.set(c.d + '|' + c.p, c); });
+  setInterval(() => { if (dirty) { dirty = false; ls.set('fd:a:' + cfg.room, [...store.values()].filter(a => !a.demo)); } }, 1500);
+
+  function ingest(raw, demo) {
+    const a = checkAnswer(raw); if (!a) return;
+    const k = a.d + '|' + a.p, old = store.get(k);
+    if (old && old.v === a.v) return;
+    if (store.size > 6000) return;
+    if (old) a.t = old.t;
+    if (demo) a.demo = true; else dirty = true;
+    store.set(k, a);
+    if (POLLS[a.p].type === 'cloud') { const fk = a.p + '|' + a.v; if (!firstSeen.has(fk)) { firstSeen.set(fk, performance.now()); setTimeout(() => scheduleRefresh(), 2700); } }
+    onAnswer(a.p);
+  }
+  const rowsOf = pid => [...store.values()].filter(a => a.p === pid && (demoOn || !a.demo));
+  function tally(pid) {
+    const P = POLLS[pid], rows = rowsOf(pid);
+    if (P.type === 'cloud') {
+      const m = new Map();
+      for (const a of rows) { const e = m.get(a.v) || { text: a.v, c: 0, t: a.t }; e.c++; e.t = Math.min(e.t, a.t); m.set(a.v, e); }
+      const all = [...m.values()].sort((a, b) => b.c - a.c || a.t - b.t);
+      return { n: rows.length, all, items: all.filter(e => !hiddenWords.has(pid + '|' + e.text)) };
+    }
+    const c = P.opts.map(() => 0);
+    for (const a of rows) for (const i of a.v.split(',')) c[+i]++;
+    return { n: rows.length, c };
+  }
+  const phones = () => new Set([...store.values()].filter(a => demoOn || !a.demo).map(a => a.d)).size;
+
+  let transport = null, stopListen = null;
+  function connect() {
+    if (stopListen) stopListen();
+    transport = makeTransport(cfg.fb, cfg.room);
+    connected = false;
+    stopListen = transport.listen(a => ingest(a, false), ok => { connected = ok; hud(); });
+  }
+
+  /* ---- background field ---- */
+  const BG = (() => {
+    const cv = $('#bg'), g = cv.getContext('2d');
+    const N = 1500, P = [], pings = [];
+    let W = 0, H = 0, R = 0, cx = 0, cy = 0, warp = 0, dir = 1, level = 1, want = 1, last = performance.now(), gridOff = 0, formed = null;
+    let acc = [25, 200, 245], hot = [255, 138, 91], bg = '#04070D', light = false;
+    const hex = s => { s = s.trim().replace('#', ''); return [0, 2, 4].map(i => parseInt(s.slice(i, i + 2), 16)); };
+    const calm = () => root.hasAttribute('data-calm');
+    function theme() {
+      const cs = getComputedStyle(root);
+      acc = hex(cs.getPropertyValue('--acc')); hot = hex(cs.getPropertyValue('--hot')); bg = cs.getPropertyValue('--bg').trim();
+      light = root.dataset.room === 'bright';
+    }
+    function seed(p, anywhere) {
+      p.a = Math.random() * 6.2832; p.r = anywhere ? Math.pow(Math.random(), .7) : .015 + Math.random() * .07;
+      p.v = .15 + Math.random() * .85; p.s = Math.random();
+      p.x = p.ox = cx + Math.cos(p.a) * p.r * R; p.y = p.oy = cy + Math.sin(p.a) * p.r * R; p.tx = null;
+    }
+    function resize() {
+      const dpr = Math.min(devicePixelRatio || 1, 1.5);
+      W = innerWidth; H = innerHeight; cv.width = W * dpr | 0; cv.height = H * dpr | 0; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cx = W / 2; cy = H * .46; R = Math.hypot(W, H) / 2;
+    }
+    function grid(dt) {
+      const y0 = H * .6, a = (light ? .3 : .26) * level;
+      gridOff = (gridOff + dt * (.22 + warp * 2.4) * dir + 1) % 1;
+      g.lineWidth = 1;
+      for (let i = -16; i <= 16; i++) {
+        g.strokeStyle = `rgba(${acc},${a * .55})`;
+        g.beginPath(); g.moveTo(cx + i * W * .012, y0); g.lineTo(cx + i * W * .17, H); g.stroke();
+      }
+      for (let k = 0; k < 14; k++) {
+        const z = (k + gridOff) / 14, y = y0 + (H - y0) * z * z;
+        g.strokeStyle = `rgba(${acc},${a * z})`;
+        g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
+      }
+      const gr = g.createLinearGradient(0, y0 - 60, 0, y0 + 30);
+      gr.addColorStop(0, `rgba(${acc},0)`); gr.addColorStop(.75, `rgba(${acc},${.16 * level})`); gr.addColorStop(1, `rgba(${acc},0)`);
+      g.fillStyle = gr; g.fillRect(0, y0 - 60, W, 90);
+    }
+    function frame(now) {
+      const dt = Math.min(.05, (now - last) / 1000); last = now;
+      warp *= Math.pow(.012, dt); level += (want - level) * Math.min(1, dt * 3);
+      g.globalCompositeOperation = 'source-over'; g.fillStyle = bg; g.fillRect(0, 0, W, H);
+      grid(dt);
+      g.globalCompositeOperation = light ? 'source-over' : 'lighter';
+      const streak = warp > .06, sp = (.05 + warp * 2.8) * dir;
+      g.lineCap = 'butt';
+      for (const p of P) {
+        p.ox = p.x; p.oy = p.y;
+        let al, sz;
+        if (p.tx != null) {
+          const k = Math.min(1, dt * (2.4 + p.s * 4.2));
+          p.x += (p.tx - p.x) * k + (Math.random() - .5) * .7; p.y += (p.ty - p.y) * k + (Math.random() - .5) * .7;
+          al = (light ? 1 : .9) * (.6 + .4 * p.s); sz = 2.2 + p.s * 1.9;
+        } else {
+          p.r += (.03 + p.r * .5) * p.v * sp * dt * 3;
+          if (p.r > 1.06) seed(p, false); else if (p.r < .012) { seed(p, false); p.r = 1.02; }
+          p.x = cx + Math.cos(p.a) * p.r * R; p.y = cy + Math.sin(p.a) * p.r * R;
+          al = Math.min(1, p.r * 2) * level * (.3 + .7 * p.s) * (light ? .8 : 1); sz = .7 + p.r * 2.6;
+        }
+        if (streak && p.tx == null && Math.abs(p.x - p.ox) + Math.abs(p.y - p.oy) < R * .4) {
+          g.strokeStyle = `rgba(${acc},${al})`; g.lineWidth = sz * .8;
+          g.beginPath(); g.moveTo(p.ox, p.oy); g.lineTo(p.x, p.y); g.stroke();
+        } else { g.fillStyle = `rgba(${acc},${al})`; g.fillRect(p.x - sz / 2, p.y - sz / 2, sz, sz); }
+      }
+      for (let i = pings.length - 1; i >= 0; i--) {
+        const q = pings[i]; q.t += dt / .9;
+        if (q.t >= 1) { pings.splice(i, 1); continue; }
+        const e = 1 - Math.pow(1 - q.t, 3), arc = Math.sin(q.t * Math.PI) * q.lift;
+        const x = q.x0 + (q.x1 - q.x0) * e, y = q.y0 + (q.y1 - q.y0) * e - arc;
+        const rg = g.createRadialGradient(x, y, 0, x, y, 26);
+        rg.addColorStop(0, `rgba(${hot},.95)`); rg.addColorStop(1, `rgba(${hot},0)`);
+        g.fillStyle = rg; g.fillRect(x - 26, y - 26, 52, 52);
+        g.fillStyle = `rgba(${hot},1)`; g.fillRect(x - 3, y - 3, 6, 6);
+      }
+      requestAnimationFrame(frame);
+    }
+    function form(text, fsPx, cxp, baseY) {
+      const oc = document.createElement('canvas'); oc.width = W; oc.height = H;
+      const o = oc.getContext('2d', { willReadFrequently: true });
+      o.font = `800 ${fsPx}px Unbounded, "Arial Black", sans-serif`; o.textAlign = 'center'; o.textBaseline = 'alphabetic';
+      try { o.letterSpacing = (-.01 * fsPx) + 'px'; } catch {}
+      o.fillStyle = '#fff'; o.fillText(text, cxp, baseY);
+      const data = o.getImageData(0, 0, W, H).data, cap = Math.floor(N * .86);
+      let step = Math.max(3, Math.round(fsPx / 46)), pts;
+      for (; ; step++) {
+        pts = [];
+        for (let y = 0; y < H; y += step) for (let x = 0; x < W; x += step) if (data[(y * W + x) * 4 + 3] > 140) pts.push(x, y);
+        if (pts.length / 2 <= cap) break;
+      }
+      const n = pts.length / 2, idx = Array.from({ length: n }, (_, i) => i);
+      for (let i = n - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [idx[i], idx[j]] = [idx[j], idx[i]]; }
+      P.forEach((p, i) => { if (i < n) { p.tx = pts[idx[i] * 2]; p.ty = pts[idx[i] * 2 + 1]; } else p.tx = null; });
+      formed = { text, fsPx, cxp, baseY };
+    }
+    function release() {
+      if (!formed) return; formed = null;
+      for (const p of P) if (p.tx != null) {
+        p.tx = null; const dx = p.x - cx, dy = p.y - cy;
+        p.a = Math.atan2(dy, dx); p.r = Math.max(.02, Math.hypot(dx, dy) / R);
+      }
+    }
+    resize(); theme();
+    for (let i = 0; i < N; i++) { const p = {}; seed(p, true); P.push(p); }
+    requestAnimationFrame(frame);
+    return {
+      resize, theme, form, release,
+      kick(d) { if (!calm()) { warp = 1; dir = d; } },
+      level(v) { want = v; },
+      ping(x0, y0, x1, y1) { if (pings.length < 40 && !calm()) pings.push({ x0, y0, x1, y1, t: 0, lift: 60 + Math.random() * 120 }); },
+      get formed() { return formed; },
+    };
+  })();
+
+  /* ---- slides ---- */
+  const S = [];
+  S.push({ k: 'title' }, { k: 'hands' });
+  DIALS.forEach((d, i) => {
+    S.push({ k: 'chapter', d: i }, { k: 'poll', d: i, p: d.poll }, { k: 'results', d: i, p: d.poll, down: !!d.bonus });
+    if (d.bonus) S.push({ k: 'poll', d: i, p: d.bonus, bonus: true }, { k: 'results', d: i, p: d.bonus, bonus: true });
+    S.push({ k: 'story', d: i }, { k: 'insight', d: i }, { k: 'try', d: i });
+  });
+  S.push({ k: 'recap' }, { k: 'poll', p: 'p6' }, { k: 'results', p: 'p6' }, { k: 'final' });
+
+  function words(str, start = 0) {
+    const out = []; let i = start, hl = false;
+    str.split('*').forEach(part => {
+      part.split(/(\s+)/).forEach(tok => {
+        if (!tok) return;
+        if (/^\s+$/.test(tok)) out.push(' ');
+        else out.push(h('span', { class: 'w' + (hl ? ' hl' : ''), style: `--i:${i++}`, text: tok }));
+      });
+      hl = !hl;
+    });
+    return out;
+  }
+  const kick = (t, hot) => h('div', { class: 'kick rise' + (hot ? ' hot' : ''), text: t });
+  const dialTag = s => s.d != null ? `Dial 0${s.d + 1} · ${DIALS[s.d].word}` : 'Close';
+
+  const live = {};   // per slide index: refresh()
+  function build(s, idx) {
+    const el = h('section', { class: 'slide s-' + s.k, 'aria-hidden': 'true' });
+    const D = s.d != null ? DIALS[s.d] : null;
+    if (s.k === 'title') {
+      add(el, kick('Five dials'), h('h1', { class: 'big' }, words('Same model. Different *paradigm.*')),
+        h('p', { class: 'sub rise', style: '--i:6', text: 'How do we actually use Claude and GPT? A live experiment, with your phones.' }),
+        h('p', { class: 'mono keys rise', style: '--i:9', text: '→ next   ·   A results and setup   ·   Q code   ·   D demo data   ·   F full screen' }));
+    } else if (s.k === 'hands') {
+      add(el, kick('No phones yet'), h('h1', { class: 'say' }, words('Hands up if you use AI *the same way* you did a year ago.')),
+        h('div', { class: 'eq rise', style: '--i:14' }, Array.from({ length: 9 }, (_, i) => h('i', { style: `--i:${i}` }))),
+        h('p', { class: 'sub rise', style: '--i:16', text: 'Look around.' }));
+    } else if (s.k === 'chapter') {
+      const w = h('div', { class: 'word', text: D.word });
+      add(el, kick(`Dial 0${s.d + 1} of 05`), w, h('p', { class: 'sub rise', style: '--i:7', text: D.ask }));
+      s.wordEl = w;
+    } else if (s.k === 'poll') {
+      const P = POLLS[s.p], num = h('b', { text: '0' });
+      add(el, kick(`Poll ${LABEL[s.p]} · on your phone`), h('h1', { class: 'say' }, words(P.q)),
+        P.type === 'cloud'
+          ? h('p', { class: 'sub rise', style: '--i:8', text: P.hint || '' })
+          : h('ul', { class: 'opts rise', style: '--i:8' }, P.opts.map(o => h('li', { text: o }))),
+        h('div', { class: 'count rise', style: '--i:10' }, num, h('span', { text: 'answers in' })));
+      let shown = 0;
+      live[idx] = () => {
+        const n = rowsOf(s.p).length;
+        if (n !== shown) { num.textContent = n; if (n > shown) { num.classList.remove('bump'); void num.offsetWidth; num.classList.add('bump'); } shown = n; }
+      };
+    } else if (s.k === 'results') {
+      const P = POLLS[s.p], nEl = h('b', { text: '0' });
+      const empty = h('div', { class: 'empty', text: 'Waiting for the first answer…' });
+      add(el, h('div', { class: 'rhead' },
+        h('div', null, kick(`Results · poll ${LABEL[s.p]}`), h('h2', { class: 'rise', style: '--i:1', text: P.q })),
+        h('div', { class: 'n rise', style: '--i:2' }, nEl, ' answers')), empty);
+      if (P.type === 'cloud') {
+        const box = h('div', { class: 'cloud' }), more = h('div', { class: 'more' });
+        add(el, box, more);
+        const nodes = new Map();
+        live[idx] = () => {
+          const t = tally(s.p); nEl.textContent = t.n; empty.hidden = t.items.length > 0;
+          const lay = layoutCloud(t.items, 1230, 520), keep = new Set(), now = performance.now();
+          lay.forEach((it, r) => {
+            keep.add(it.text);
+            let n = nodes.get(it.text);
+            if (!n) {
+              n = h('span', { class: 'in', text: it.text, title: 'Click to hide' });
+              n.addEventListener('click', e => { e.stopPropagation(); toggleWord(s.p, it.text); });
+              n.style.transform = `translate(-50%,-50%) translate(${1230 + 120}px,${520 + 40}px)`; n.style.fontSize = it.fs + 'px';
+              box.append(n); nodes.set(it.text, n); void n.offsetWidth;
+            }
+            n.className = (r === 0 && it.c > 1 ? 'top' : it.c === 1 ? 'one' : '') + (now - (firstSeen.get(s.p + '|' + it.text) || 0) < 2600 ? ' new' : '');
+            n.style.fontSize = it.fs + 'px'; n.style.transform = `translate(-50%,-50%) translate(${it.x}px,${it.y}px)`;
+          });
+          for (const [k, n] of nodes) if (!keep.has(k)) { n.remove(); nodes.delete(k); }
+          const rest = t.items.length - lay.length;
+          more.textContent = rest > 0 ? `+${rest} more in results (A)` : '';
+        };
+      } else {
+        const rowsEl = P.opts.map(o => {
+          const p = h('span', { class: 'p', text: '0%' }), c = h('span', { class: 'c', text: '0' });
+          return { el: h('div', { class: 'bar' }, h('span', { class: 'l', text: o }), h('span', { class: 't' }, h('i')), p, c), p, c };
+        });
+        add(el, h('div', { class: 'bars' }, rowsEl.map(r => r.el)));
+        live[idx] = () => {
+          const t = tally(s.p), mx = Math.max(...t.c); nEl.textContent = t.n; empty.hidden = t.n > 0;
+          rowsEl.forEach((r, i) => {
+            r.el.style.setProperty('--v', t.n ? t.c[i] / Math.max(mx, 1) : 0);
+            r.el.classList.toggle('lead', t.n > 0 && t.c[i] === mx);
+            r.p.textContent = pct(t.c[i], t.n) + '%'; r.c.textContent = t.c[i];
+          });
+        };
+      }
+    } else if (s.k === 'story') {
+      add(el, h('div', { class: 'ring' }), kick('Your turn', true), h('h1', { class: 'say' }, words(D.story)),
+        h('p', { class: 'sub rise', style: '--i:14', text: 'One story. Thirty seconds.' }));
+    } else if (s.k === 'insight') {
+      const dia = h('div', { class: 'dia rise', style: '--i:14' });
+      D.dia.forEach((c, i) => {
+        if (i) dia.append(h('span', { class: 'arrow', text: '→' }));
+        dia.append(h('div', { class: 'chip' + (c[2] ? ' far' : '') }, h('b', { text: c[0] }), h('small', { text: c[1] })));
+      });
+      add(el, kick('Insight · ' + D.word), h('h1', { class: 'say' }, words(D.insight)), dia);
+    } else if (s.k === 'try') {
+      const term = h('div', { class: 'term rise', style: '--i:6' }, D.prompts.map(t => h('p', { 'data-t': t })));
+      add(el, kick('Try this'), h('h1', { class: 'say' }, words(D.tryTitle)),
+        h('p', { class: 'sub rise', style: '--i:4', text: D.trySub }), term,
+        D.note && h('p', { class: 'note rise', style: '--i:12', text: D.note }));
+      s.term = term;
+    } else if (s.k === 'recap') {
+      const list = h('div', { class: 'recap' }), x = h('p', { class: 'xtab', hidden: true });
+      add(el, kick('This room'), h('h2', { class: 'rise', style: '--i:1', text: 'Five dials, as you set them.' }), list, x);
+      live[idx] = () => {
+        list.replaceChildren(...DIALS.map((d, i) => {
+          const P = POLLS[d.poll], t = tally(d.poll); let a = 'No answers yet', sub = '', v = '', share = 0;
+          if (t.n && P.type === 'cloud') { const top = t.items[0]; if (top) { a = '“' + top.text + '”'; sub = top.c > 1 ? `most common of ${t.items.length} different answers` : `one of ${t.items.length} different answers`; v = top.c > 1 ? top.c + '×' : ''; share = top.c / t.n; } }
+          else if (t.n) { const mx = Math.max(...t.c), j = t.c.indexOf(mx); a = P.opts[j]; sub = P.type === 'multi' ? 'most picked' : 'most common'; v = pct(mx, t.n) + '%'; share = mx / t.n; }
+          return h('div', { class: 'rrow rise', style: `--i:${i + 2};--v:${share}` }, h('span', { class: 'd', text: d.word }),
+            h('span', { class: 'a' }, a, sub && h('small', { text: sub })), h('span', { class: 'v', text: v }));
+        }));
+        // terminal users vs how long they let it run
+        const by = {}; for (const a of store.values()) if (demoOn || !a.demo) (by[a.d] ||= {})[a.p] = a.v;
+        let ta = 0, tl = 0, oa = 0, ol = 0;
+        for (const d in by) { const w = by[d].p2, r = by[d].p5; if (w == null || r == null) continue; const term = w.split(',').includes('4'), long = +r >= 2; if (term) { ta++; if (long) tl++; } else { oa++; if (long) ol++; } }
+        if (ta >= 3 && oa >= 3) {
+          x.hidden = false;
+          x.replaceChildren('In the terminal, ', h('b', { text: pct(tl, ta) + '%' }), ' have let it run for half an hour or more. Everyone else: ', h('b', { text: pct(ol, oa) + '%' }), `. (${ta} and ${oa} phones.)`);
+        } else x.hidden = true;
+      };
+    } else if (s.k === 'final') {
+      add(el, kick('Five dials'), h('h1', { class: 'big' }, words('Same model for everyone here. The paradigm is *yours.*')),
+        h('p', { class: 'sub rise', style: '--i:12', text: 'Thank you.' }));
+    }
+    return el;
+  }
+  const els = S.map((s, i) => { const e = build(s, i); stage.insertBefore(e, $('#hud')); return e; });
+
+  /* ---- word cloud layout ---- */
+  const meas = document.createElement('canvas').getContext('2d');
+  let cloudMemo = { sig: '', out: [] };
+  function layoutCloud(items, BW, BH) {
+    const list = items.slice(0, 40); if (!list.length) return [];
+    const sig = BW + '|' + list.map(it => it.text + ':' + it.c).join('|');
+    if (sig === cloudMemo.sig) return cloudMemo.out;
+    const mx = list[0].c, base = Math.max(26, Math.min(64, 520 / Math.sqrt(list.length)));
+    let best = [];
+    // shrink everything together until every answer finds a place
+    for (let k = 1, round = 0; round < 12; round++, k *= .88) {
+      const placed = [], out = [];
+      for (const it of list) {
+        const fs = Math.max(15, base * k * (1 + (mx > 1 ? 1.2 * (it.c - 1) / (mx - 1) : 0)));
+        meas.font = `700 ${fs}px Onest, system-ui, sans-serif`;
+        const w = meas.measureText(it.text).width + 30, hh = fs * 1.3;
+        if (w > BW) continue;
+        const a0 = (hash(it.text) % 628) / 100;
+        for (let t = 0; t < 900; t++) {
+          const ang = a0 + t * .33, rad = .75 * t;
+          const x = BW / 2 + rad * Math.cos(ang) * 2.1, y = BH / 2 + rad * Math.sin(ang);
+          if (x - w / 2 < 0 || x + w / 2 > BW || y - hh / 2 < 0 || y + hh / 2 > BH) continue;
+          if (placed.some(r => Math.abs(r.x - x) < (r.w + w) / 2 && Math.abs(r.y - y) < (r.h + hh) / 2)) continue;
+          placed.push({ x, y, w, h: hh }); out.push({ text: it.text, c: it.c, x, y, fs }); break;
+        }
+      }
+      if (out.length > best.length) best = out;
+      if (out.length === list.length) break;
+    }
+    cloudMemo = { sig, out: best };
+    return best;
+  }
+  function toggleWord(pid, text) {
+    const k = pid + '|' + text; hiddenWords.has(k) ? hiddenWords.delete(k) : hiddenWords.add(k);
+    cfg.hidden = [...hiddenWords]; saveCfg(); refreshAll(); if (!panel.hidden) drawPanel();
+  }
+
+  /* ---- navigation ---- */
+  let cur = 0, t0 = null, showTime = true, typing = 0;
+  const scale = () => Math.min(innerWidth / 1600, innerHeight / 900);
+  function fit() { stage.style.setProperty('--s', scale()); }
+  function stagePt(x, y) { const s = scale(); return [innerWidth / 2 + (x - 800) * s, innerHeight / 2 + (y - 450) * s]; }
+  const LEVEL = { title: 1, hands: .7, chapter: 1, poll: .5, results: .3, story: .55, insight: .42, try: .4, recap: .36, final: .95 };
+
+  function formWord(s) {
+    const text = DIALS[s.d].word, sc = scale();
+    meas.font = '800 100px Unbounded, "Arial Black", sans-serif';
+    const fs = Math.min(250, 1340 / (meas.measureText(text).width / 100));
+    s.wordEl.style.fontSize = fs + 'px';
+    meas.font = `800 ${fs}px Unbounded, "Arial Black", sans-serif`;
+    const m = meas.measureText(text), fa = m.fontBoundingBoxAscent || fs * .8, fd = m.fontBoundingBoxDescent || fs * .2;
+    const [px, py] = stagePt(800, 290 + (260 - (fa + fd)) / 2 + fa);
+    BG.form(text, fs * sc, px, py);
+  }
+  function typeOut(term) {
+    const my = ++typing, ps = [...term.querySelectorAll('p')], calm = root.hasAttribute('data-calm');
+    ps.forEach(p => p.replaceChildren(h('span', { class: 'rest', text: p.dataset.t })));
+    if (calm) { ps.forEach(p => p.replaceChildren(p.dataset.t)); return; }
+    let pi = 0, ci = 0;
+    const step = () => {
+      if (my !== typing) return;
+      const p = ps[pi]; if (!p) return;
+      const t = p.dataset.t; ci = Math.min(t.length, ci + 2);
+      p.replaceChildren(t.slice(0, ci), h('span', { class: 'caret' }), h('span', { class: 'rest', text: t.slice(ci) }));
+      if (ci >= t.length) { pi++; ci = 0; if (ps[pi]) p.replaceChildren(t); setTimeout(step, 320); } else setTimeout(step, 22);
+    };
+    setTimeout(step, 900);
+  }
+
+  function go(i, d) {
+    i = Math.max(0, Math.min(S.length - 1, i));
+    const from = cur; cur = i; const s = S[i];
+    if (i !== from && t0 == null && i > 0) t0 = Date.now();
+    els.forEach((e, j) => { e.classList.toggle('on', j === i); e.classList.toggle('past', j < i); e.setAttribute('aria-hidden', String(j !== i)); });
+    deck.dataset.qr = (s.k === 'title' || s.k === 'hands') ? 'off' : s.k === 'poll' ? 'side' : 'corner';
+    deck.classList.remove('hero');
+    BG.level(LEVEL[s.k] || .5);
+    if (i !== from) BG.kick(d || (i > from ? 1 : -1));
+    BG.release();
+    if (s.k === 'chapter') document.fonts.load('800 100px Unbounded').catch(() => {}).then(() => { if (cur === i) setTimeout(() => { if (cur === i) formWord(s); }, 380); });
+    if (s.k === 'try') typeOut(s.term); else typing++;
+    if (live[i]) live[i]();
+    if (s.p && transport) transport.setState({ p: s.p, n: Date.now() });
+    if (demoOn && s.k === 'poll') demoTrickle(s.p);
+    hud();
+    ls.set('fd:pos', { i, room: cfg.room, t0, at: Date.now() });
+  }
+  function next() {
+    let j = cur + 1;
+    if (!S[cur].bonus) while (S[j] && S[j].bonus) j++;
+    if (j < S.length) go(j, 1);
+  }
+  function prev() {
+    let j = cur - 1;
+    if (!S[cur].bonus) while (S[j] && S[j].bonus) j--;
+    if (j >= 0) go(j, -1);
+  }
+  function down() { if (S[cur + 1] && S[cur + 1].bonus && !S[cur].bonus) go(cur + 1, 1); }
+  function up() { if (S[cur].bonus) { let j = cur; while (S[j].bonus) j--; go(j, -1); } }
+
+  function refreshAll() { if (live[cur]) live[cur](); hud(); }
+  function onAnswer(pid) {
+    const s = S[cur];
+    if (s.p === pid && (s.k === 'poll' || s.k === 'results')) {
+      const q = $('#qr').getBoundingClientRect(), [tx, ty] = s.k === 'poll' ? stagePt(200, 690) : stagePt(700, 480);
+      BG.ping(q.left + q.width / 2, q.top + q.height / 2, tx, ty);
+    }
+    scheduleRefresh();
+  }
+  let rf = 0;
+  function scheduleRefresh() { if (!rf) rf = setTimeout(() => { rf = 0; refreshAll(); }, 140); }
+
+  /* ---- hud ---- */
+  const dots = $('#knobDots');
+  [-120, -60, 0, 60, 120].forEach(a => { const r = a * Math.PI / 180; dots.append(document.createElementNS('http://www.w3.org/2000/svg', 'circle')); const c = dots.lastChild; c.setAttribute('class', 'dot'); c.setAttribute('cx', 32 + 27 * Math.sin(r)); c.setAttribute('cy', 32 - 27 * Math.cos(r)); c.setAttribute('r', 3); });
+  const fmt = sec => String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(Math.floor(sec % 60)).padStart(2, '0');
+  function hud() {
+    const s = S[cur], di = s.d != null ? s.d : (cur < 2 ? -1 : 5);
+    $('.knob').style.setProperty('--ang', (di < 0 ? -165 : di > 4 ? 165 : -120 + di * 60) + 'deg');
+    [...dots.children].forEach((c, i) => c.classList.toggle('lit', i <= di && di < 5 || di === 5));
+    $('#hudDial').textContent = cur < 2 ? 'Five Dials' : dialTag(s);
+    $('#hudHint').textContent = s.down ? '↓ bonus poll' : s.bonus ? '↑ back' : '';
+    const n = phones(); $('#hudPhones').textContent = n + (n === 1 ? ' phone' : ' phones');
+    $('#hudDot').classList.toggle('ok', connected);
+    $('#hudDemo').hidden = !demoOn;
+    const te = $('#hudTime'); te.hidden = !showTime || t0 == null;
+    if (t0 != null) { const el = (Date.now() - t0) / 1000, until = s.d != null ? DIALS[s.d].until : cur < 2 ? 60 : CLOSE_UNTIL; te.textContent = fmt(el) + ' / ' + fmt(until); te.classList.toggle('over', el > until); }
+  }
+  setInterval(hud, 1000);
+
+  /* ---- qr ---- */
+  function drawQR() {
+    const url = joinUrl(), q = qrcode(0, 'M'); q.addData(url); q.make();
+    const n = q.getModuleCount(), m = 2; let d = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + m} ${r + m}h1v1h-1z`;
+    $('#qrSvg').innerHTML = `<svg viewBox="0 0 ${n + m * 2} ${n + m * 2}" shape-rendering="crispEdges" role="img" aria-label="QR code to join"><path d="${d}" fill="#04121C"/></svg>`;
+    const sub = $('#qrSub');
+    sub.className = LOCAL ? 'warn' : '';
+    sub.textContent = LOCAL ? 'This link only works on this computer. Host the page first.' : 'No app. No login.';
+  }
+
+  /* ---- demo data (never saved, never exported) ---- */
+  const DEMO = {
+    p1: ['fix my latex', 'rewrite this email', 'explain this error', 'summarize this paper', 'debug my code', 'reply to reviewer 2', 'fix my latex', 'debug my code', 'summarize this paper', 'regex for dates', 'plot this data', 'shorten my abstract', 'fix my latex', 'title for paper', 'cover letter help', 'explain transformers', 'python to rust', 'debug my code', 'dinner ideas', 'what is bayes'],
+    p5b: ['write my thesis', 'email my supervisor', 'submit a paper', 'review a paper', 'touch raw data', 'pick my method', 'sign anything', 'email my supervisor', 'write my thesis', 'cite for me', 'run on the cluster', 'talk to my mum', 'write my thesis', 'delete files', 'email my supervisor'],
+    p6: ['voice mode', 'mock defense', 'a project', 'the handoff', 'claude code', 'interview me', 'ask for the prompt', 'the handoff', 'mock defense', 'fresh chats', 'thesis folder', 'a scheduled task', 'claude code', 'the handoff', 'mock defense'],
+    p1b: [3, 5, 6, 2, 3, 1], p2: [9, 3, 4, 4, 3, 2], p2b: [8, 6, 3, 2], p3: [6, 7, 2, 3, 3], p3b: [5, 4, 8, 3], p4: [9, 7, 3, 1, 2], p5: [8, 9, 3, 2, 1],
+  };
+  const pickW = w => { let r = Math.random() * w.reduce((a, b) => a + b, 0); for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i; } return 0; };
+  function demoAnswer(pid, k) {
+    const P = POLLS[pid], d = 'demo' + String(k).padStart(4, '0'), w = DEMO[pid];
+    if (P.type === 'cloud') return { d, p: pid, v: w[k % w.length] };
+    if (P.type === 'multi') { const set = new Set([pickW(w)]); if (Math.random() < .55) set.add(pickW(w)); if (k % 5 === 0) set.add(4); return { d, p: pid, v: [...set].join(',') }; }
+    return { d, p: pid, v: String(pid === 'p5' && k % 5 === 0 ? 2 + (k % 2) : pickW(w)) };
+  }
+  let trickle = 0;
+  function demoTrickle(pid) {
+    const my = ++trickle;
+    for (const [k, a] of store) if (a.demo && a.p === pid) store.delete(k);
+    refreshAll();
+    let k = 0; const step = () => { if (my !== trickle || !demoOn || k >= 26) return; ingest(demoAnswer(pid, k++), true); setTimeout(step, 120 + Math.random() * 380); };
+    setTimeout(step, 1200);
+  }
+  function setDemo(on) {
+    demoOn = on; trickle++;
+    for (const [k, a] of store) if (a.demo) store.delete(k);
+    if (on) { ORDER.forEach(pid => { for (let k = 0; k < 26; k++) ingest(demoAnswer(pid, k), true); }); if (S[cur].k === 'poll') demoTrickle(S[cur].p); }
+    refreshAll(); if (!panel.hidden) drawPanel();
+  }
+
+  /* ---- results panel ---- */
+  const panel = $('#panel'); let armed = false, xa = 'p2', xb = 'p5', ptimer = 0;
+  const choice = ORDER.filter(p => POLLS[p].type !== 'cloud');
+  function exportRows() {
+    const devs = new Map();
+    return [...store.values()].filter(a => !a.demo).sort((a, b) => a.t - b.t).map(a => {
+      if (!devs.has(a.d)) devs.set(a.d, 'phone' + String(devs.size + 1).padStart(2, '0'));
+      const P = POLLS[a.p];
+      return { phone: devs.get(a.d), poll: LABEL[a.p], question: P.q, answer: P.type === 'cloud' ? a.v : a.v.split(',').map(i => P.opts[+i]).join(' | '), time: new Date(a.t).toISOString() };
+    });
+  }
+  function download(name, text, type) {
+    const a = h('a', { href: URL.createObjectURL(new Blob([text], { type })), download: name }); document.body.append(a); a.click(); a.remove();
+  }
+  function copy(text, btn) {
+    const done = () => { const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1200); };
+    navigator.clipboard?.writeText(text).then(done, () => {}) ;
+  }
+  function drawPanel() {
+    const real = [...store.values()].filter(a => !a.demo), nPh = new Set(real.map(a => a.d)).size;
+    const fbIn = h('input', { id: 'fbUrl', type: 'url', placeholder: 'https://your-project-default-rtdb.europe-west1.firebasedatabase.app', value: cfg.fb, spellcheck: 'false' });
+    const fbMsg = h('p', { class: 'help' });
+    const pn = h('div', { class: 'pn' },
+      h('div', { class: 'pn-h' }, h('h1', { text: 'Results and setup' }),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn', text: 'Export CSV', onclick: () => { const r = exportRows(), esc = v => '"' + String(v).replace(/"/g, '""') + '"'; download(`five-dials-${cfg.room}.csv`, ['phone,poll,question,answer,time', ...r.map(x => [x.phone, x.poll, x.question, x.answer, x.time].map(esc).join(','))].join('\n'), 'text/csv'); } }),
+          h('button', { class: 'btn', text: 'Copy as JSON', onclick: e => copy(JSON.stringify(exportRows(), null, 1), e.currentTarget) }),
+          h('button', { class: 'btn pri', text: 'Back to slides', onclick: togglePanel }))),
+      h('div', { class: 'tiles' },
+        h('div', { class: 'tile' }, h('b', { text: nPh }), h('span', { text: 'phones' })),
+        h('div', { class: 'tile' }, h('b', { text: real.length }), h('span', { text: 'answers' })),
+        h('div', { class: 'tile' }, h('b', { text: nPh ? (real.length / nPh).toFixed(1) : '0' }), h('span', { text: 'answers per phone' })),
+        h('div', { class: 'tile' }, h('b', { text: connected ? 'Live' : 'Offline' }), h('span', { text: transport.kind + ' · session ' + cfg.room }))),
+      demoOn && h('p', { class: 'help', style: 'color:var(--hot)', text: 'Demo data is on. The breakdowns below include made-up answers; the tiles and exports never do.' }),
+      h('div', null, h('h2', { text: 'Every poll' }), h('div', { class: 'grid2' }, ORDER.map(pid => {
+        const P = POLLS[pid], t = tally(pid);
+        const body = P.type === 'cloud'
+          ? h('div', { class: 'words' }, t.all.length ? t.all.map(e => h('button', { class: hiddenWords.has(pid + '|' + e.text) ? 'off' : '', title: 'Show or hide on the big screen', onclick: () => toggleWord(pid, e.text) }, e.text, h('b', { text: '×' + e.c }))) : h('span', { class: 'help', text: 'No answers yet.' }))
+          : h('div', null, P.opts.map((o, i) => h('div', { class: 'mb', style: `--v:${t.n ? t.c[i] / t.n : 0}` }, h('span', { text: o }), h('span', { class: 'p', text: pct(t.c[i], t.n) + '%' }), h('span', { class: 'c', text: t.c[i] }), h('span', { class: 't' }, h('i')))));
+        return h('div', { class: 'card' }, h('h3', { text: P.q }), h('div', { class: 'meta', text: `Poll ${LABEL[pid]} · ${t.n} answers` + (P.type === 'multi' ? ' · % of phones' : '') + (P.type === 'cloud' ? ' · click a word to hide it' : '') }), body);
+      }))),
+      h('div', null, h('h2', { text: 'Compare two polls' }),
+        h('div', { class: 'card' },
+          h('div', { class: 'row', style: 'margin-bottom:12px' },
+            h('select', { id: 'xa', 'aria-label': 'Rows', onchange: e => { xa = e.target.value; drawPanel(); } }, choice.map(p => h('option', { value: p, selected: p === xa, text: LABEL[p] + ' · ' + POLLS[p].q }))),
+            h('span', { class: 'help', text: 'by' }),
+            h('select', { id: 'xb', 'aria-label': 'Columns', onchange: e => { xb = e.target.value; drawPanel(); } }, choice.map(p => h('option', { value: p, selected: p === xb, text: LABEL[p] + ' · ' + POLLS[p].q })))),
+          crossTab())),
+      h('div', null, h('h2', { text: 'Join link' }),
+        h('div', { class: 'card' }, h('div', { class: 'link', text: joinUrl() }),
+          h('div', { class: 'row', style: 'margin-top:10px' }, h('button', { class: 'btn', text: 'Copy link', onclick: e => copy(joinUrl(), e.currentTarget) })),
+          LOCAL && h('p', { class: 'help', style: 'color:var(--hot);margin-top:10px', text: 'This page is open from your own computer, so phones cannot reach it. Put this file on any static host (GitHub Pages works) and open it from there.' }))),
+      h('div', null, h('h2', { text: 'Where answers travel' }),
+        h('div', { class: 'card' },
+          h('p', { class: 'help' }, 'Now using: ', h('b', { style: 'color:var(--fg)', text: cfg.fb ? 'your Firebase database' : 'the zero-setup public relay (ntfy.sh)' }), cfg.fb ? '. Phones follow the slide on screen.' : '. Good for trying it and for rooms up to about 25 phones on one Wi-Fi: the relay limits each network address to 250 answers a day. For a full room, add a free Firebase database below.'),
+          h('div', { class: 'row', style: 'margin-top:14px;align-items:flex-end' },
+            h('div', { class: 'field' }, h('label', { for: 'fbUrl', text: 'Firebase Realtime Database URL' }), fbIn),
+            h('button', { class: 'btn', text: 'Save', onclick: () => { const v = cleanFb(fbIn.value); if (fbIn.value.trim() && !v) { fbMsg.textContent = 'That is not a Firebase database URL. It ends in firebaseio.com or firebasedatabase.app.'; fbMsg.style.color = 'var(--hot)'; return; } cfg.fb = v; saveCfg(); connect(); drawQR(); drawPanel(); } })),
+          fbMsg,
+          h('p', { class: 'help', style: 'margin-top:12px', text: 'Setup, about three minutes: console.firebase.google.com → Add project → Build → Realtime Database → Create database → paste these rules in the Rules tab → copy the database URL here. Then show the QR again; the new link carries the database address.' }),
+          h('pre', { class: 'code', text: '{ "rules": { "rooms": { "$room": { ".read": true, ".write": true } } } }' }))),
+      h('div', null, h('h2', { text: 'Session' }),
+        h('div', { class: 'card' }, h('div', { class: 'row' },
+          h('button', { class: 'btn', text: demoOn ? 'Turn demo data off' : 'Rehearse with demo data', onclick: () => setDemo(!demoOn) }),
+          h('button', { class: 'btn', text: cfg.bright ? 'Switch to dark room' : 'Switch to bright room', onclick: () => { cfg.bright = !cfg.bright; saveCfg(); cfg.bright ? root.dataset.room = 'bright' : delete root.dataset.room; BG.theme(); drawPanel(); } }),
+          h('button', { class: 'btn', text: root.hasAttribute('data-calm') ? 'Full motion' : 'Calm motion', onclick: () => { root.toggleAttribute('data-calm'); drawPanel(); } }),
+          h('button', { class: 'btn warn', text: armed ? 'Really start empty? Export first.' : 'Start a new session', onclick: () => { if (!armed) { armed = true; drawPanel(); setTimeout(() => { armed = false; if (!panel.hidden) drawPanel(); }, 4000); return; } armed = false; cfg.room = rid(7); cfg.hidden = []; hiddenWords.clear(); saveCfg(); store.clear(); firstSeen.clear(); t0 = null; connect(); drawQR(); go(0); drawPanel(); } })),
+          h('p', { class: 'help', style: 'margin-top:12px', text: 'A new session gets a new QR code and an empty results board. Answers from this session stay in this browser until you clear its site data.' }))),
+      h('div', null, h('h2', { text: 'Keys' }), h('div', { class: 'keysl' },
+        [['→ Space', 'next'], ['←', 'back'], ['↓ ↑', 'bonus poll, and back'], ['1–5', 'jump to a dial'], ['Home', 'first slide, clock reset'], ['A', 'this panel'], ['Q', 'big QR code'], ['D', 'demo data'], ['T', 'timer'], ['F', 'full screen'], ['L', 'bright or dark room'], ['M', 'calm motion']].map(([k, t]) => h('div', null, h('kbd', { text: k }), t)))),
+    );
+    const keepScroll = panel.scrollTop, focusId = document.activeElement && document.activeElement.id;
+    if (focusId === 'fbUrl') return;           // don't redraw under a field being typed in
+    panel.replaceChildren(pn); panel.scrollTop = keepScroll;
+  }
+  function crossTab() {
+    const A = POLLS[xa], B = POLLS[xb], by = {};
+    for (const a of store.values()) if (demoOn || !a.demo) (by[a.d] ||= {})[a.p] = a.v;
+    const m = A.opts.map(() => B.opts.map(() => 0)); let n = 0;
+    for (const d in by) { const va = by[d][xa], vb = by[d][xb]; if (va == null || vb == null) continue; n++; for (const i of va.split(',')) for (const j of vb.split(',')) m[+i][+j]++; }
+    if (!n) return h('p', { class: 'help', text: 'No phone has answered both of these yet.' });
+    return h('div', { class: 'xwrap' }, h('table', { class: 'x' },
+      h('thead', null, h('tr', null, h('th', { text: `${n} phones answered both` }), B.opts.map(o => h('th', { text: o })))),
+      h('tbody', null, A.opts.map((o, i) => h('tr', null, h('th', { text: o }), m[i].map(v => h('td', { class: v ? '' : 'z', text: v })))))));
+  }
+  function togglePanel() {
+    panel.hidden = !panel.hidden; clearInterval(ptimer);
+    if (!panel.hidden) { drawPanel(); ptimer = setInterval(() => { if (!armed && !/^(INPUT|SELECT)$/.test(document.activeElement?.tagName || '')) drawPanel(); }, 2500); }
+  }
+
+  /* ---- input ---- */
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const typingIn = /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName);
+    if (!panel.hidden) { if (!typingIn && (e.key === 'Escape' || e.key.toLowerCase() === 'a')) togglePanel(); return; }
+    const k = e.key;
+    if (k === 'ArrowRight' || k === ' ' || k === 'PageDown' || k === 'Enter') { e.preventDefault(); next(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); prev(); }
+    else if (k === 'ArrowDown') { e.preventDefault(); down(); }
+    else if (k === 'ArrowUp') { e.preventDefault(); up(); }
+    else if (k === 'Home') { t0 = null; go(0, -1); }
+    else if (k === 'End') go(S.length - 1, 1);
+    else if (/^[1-5]$/.test(k)) go(S.findIndex(s => s.k === 'chapter' && s.d === +k - 1), 1);
+    else if (k === 'Escape') deck.classList.remove('hero');
+    else switch (k.toLowerCase()) {
+      case 'a': togglePanel(); break;
+      case 'q': deck.classList.toggle('hero'); break;
+      case 'd': setDemo(!demoOn); break;
+      case 't': showTime = !showTime; hud(); break;
+      case 'f': (document.fullscreenElement ? document.exitFullscreen() : root.requestFullscreen())?.catch(() => {}); break;
+      case 'l': cfg.bright = !cfg.bright; saveCfg(); cfg.bright ? root.dataset.room = 'bright' : delete root.dataset.room; BG.theme(); break;
+      case 'm': root.toggleAttribute('data-calm'); break;
+    }
+  });
+  stage.addEventListener('click', e => {
+    if (e.target.closest('#qr')) { deck.classList.toggle('hero'); return; }
+    if (deck.classList.contains('hero')) { deck.classList.remove('hero'); return; }
+    if (e.clientX < innerWidth * .18) prev(); else next();
+  });
+  addEventListener('resize', () => { fit(); BG.resize(); if (S[cur].k === 'chapter') { BG.release(); formWord(S[cur]); } });
+
+  /* ---- start ---- */
+  fit(); drawQR(); connect();
+  const pos = ls.get('fd:pos', null);
+  if (pos && pos.room === cfg.room && pos.i > 0 && pos.i < S.length && Date.now() - (pos.at || 0) < 3 * 3600e3) { t0 = pos.t0 || null; go(pos.i); } else go(0);
+  window.__fd = { go, next, S, store, tally, cfg };
+}
+})();
+</script>
+</body>
+</html>
