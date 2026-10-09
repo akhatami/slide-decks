@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Five Dials</title>
+<title>Same Model, Different Paradigm</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Onest:wght@400;500;700&family=Unbounded:wght@500;800&display=swap">
@@ -244,7 +244,9 @@ body.is-phone{overflow-x:hidden;overflow-y:auto;background:
   radial-gradient(ellipse 120% 60% at 50% 0%,color-mix(in srgb,var(--acc) 16%,var(--bg)),var(--bg) 70%) fixed}
 #phone{min-height:100%;max-width:560px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top,0px)) 18px calc(26px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
 .ph-top{display:flex;justify-content:space-between;align-items:center}
-.ph-brand{font:800 15px/1 var(--f-d);letter-spacing:.02em}
+.ph-top{gap:14px}
+.ph-brand{font:800 12px/1.3 var(--f-d);letter-spacing:.02em;min-width:0}
+.ph-live{white-space:nowrap}
 .ph-live{font:600 12px/1 var(--f-m);letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
 .ph-live::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--acc);margin-right:8px;animation:blink 1.4s steps(2) infinite}
 .ph-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
@@ -299,7 +301,7 @@ body.is-phone{overflow-x:hidden;overflow-y:auto;background:
           <g id="knobDots"></g>
           <line class="needle" x1="32" y1="32" x2="32" y2="18" stroke="var(--acc)" stroke-width="3.5" stroke-linecap="square"/>
         </svg>
-        <span id="hudDial">Five Dials</span>
+        <span id="hudDial">Same Model, Different Paradigm</span>
       </div>
       <div class="hl-r">
         <span id="hudDemo" hidden>Demo data</span>
@@ -314,7 +316,7 @@ body.is-phone{overflow-x:hidden;overflow-y:auto;background:
 </div>
 
 <div id="phone" hidden>
-  <header class="ph-top"><span class="ph-brand">FIVE DIALS</span><span class="ph-live" id="phLive" hidden>Following the screen</span></header>
+  <header class="ph-top"><span class="ph-brand">SAME MODEL, DIFFERENT PARADIGM</span><span class="ph-live" id="phLive" hidden>Following the screen</span></header>
   <nav class="ph-steps" id="phSteps" aria-label="Polls"></nav>
   <main id="phMain"></main>
   <footer class="ph-foot">No names. No login. Answers show up on the big screen.</footer>
@@ -3100,14 +3102,14 @@ function startDeck() {
     return out;
   }
   const kick = (t, hot) => h('div', { class: 'kick rise' + (hot ? ' hot' : ''), text: t });
-  const dialTag = s => s.d != null ? `Dial 0${s.d + 1} · ${DIALS[s.d].word}` : 'Close';
+  const dialTag = s => s.d != null ? `Question 0${s.d + 1} · ${DIALS[s.d].word}` : 'Close';
 
   const live = {};   // per slide index: refresh()
   function build(s, idx) {
     const el = h('section', { class: 'slide s-' + s.k, 'aria-hidden': 'true' });
     const D = s.d != null ? DIALS[s.d] : null;
     if (s.k === 'title') {
-      add(el, kick('Five dials'), h('h1', { class: 'big' }, words('Same model. Different *paradigm.*')),
+      add(el, kick('Five questions'), h('h1', { class: 'big' }, words('Same model. Different *paradigm.*')),
         h('p', { class: 'sub rise', style: '--i:6', text: 'How do we actually use Claude and GPT? A live experiment, with your phones.' }),
         h('p', { class: 'mono keys rise', style: '--i:9', text: '→ next   ·   A results and setup   ·   Q code   ·   D demo data   ·   F full screen' }));
     } else if (s.k === 'hands') {
@@ -3116,7 +3118,7 @@ function startDeck() {
         h('p', { class: 'sub rise', style: '--i:16', text: 'Look around.' }));
     } else if (s.k === 'chapter') {
       const w = h('div', { class: 'word', text: D.word });
-      add(el, kick(`Dial 0${s.d + 1} of 05`), w, h('p', { class: 'sub rise', style: '--i:7', text: D.ask }));
+      add(el, kick(`Question 0${s.d + 1} of 05`), w, h('p', { class: 'sub rise', style: '--i:7', text: D.ask }));
       s.wordEl = w;
     } else if (s.k === 'poll') {
       const P = POLLS[s.p], num = h('b', { text: '0' });
@@ -3192,7 +3194,7 @@ function startDeck() {
       s.term = term;
     } else if (s.k === 'recap') {
       const list = h('div', { class: 'recap' }), x = h('p', { class: 'xtab', hidden: true });
-      add(el, kick('This room'), h('h2', { class: 'rise', style: '--i:1', text: 'Five dials, as you set them.' }), list, x);
+      add(el, kick('This room'), h('h2', { class: 'rise', style: '--i:1', text: 'Five questions, as you answered them.' }), list, x);
       live[idx] = () => {
         list.replaceChildren(...DIALS.map((d, i) => {
           const P = POLLS[d.poll], t = tally(d.poll); let a = 'No answers yet', sub = '', v = '', share = 0;
@@ -3211,7 +3213,7 @@ function startDeck() {
         } else x.hidden = true;
       };
     } else if (s.k === 'final') {
-      add(el, kick('Five dials'), h('h1', { class: 'big' }, words('Same model for everyone here. The paradigm is *yours.*')),
+      add(el, kick('Five questions later'), h('h1', { class: 'big' }, words('Same model for everyone here. The paradigm is *yours.*')),
         h('p', { class: 'sub rise', style: '--i:12', text: 'Thank you.' }));
     }
     return el;
@@ -3338,7 +3340,7 @@ function startDeck() {
     const s = S[cur], di = s.d != null ? s.d : (cur < 2 ? -1 : 5);
     $('.knob').style.setProperty('--ang', (di < 0 ? -165 : di > 4 ? 165 : -120 + di * 60) + 'deg');
     [...dots.children].forEach((c, i) => c.classList.toggle('lit', i <= di && di < 5 || di === 5));
-    $('#hudDial').textContent = cur < 2 ? 'Five Dials' : dialTag(s);
+    $('#hudDial').textContent = cur < 2 ? 'Same Model, Different Paradigm' : dialTag(s);
     $('#hudHint').textContent = s.down ? '↓ bonus poll' : s.bonus ? '↑ back' : '';
     const n = phones(); $('#hudPhones').textContent = n + (n === 1 ? ' phone' : ' phones');
     $('#hudDot').classList.toggle('ok', connected);
@@ -3413,7 +3415,7 @@ function startDeck() {
     const pn = h('div', { class: 'pn' },
       h('div', { class: 'pn-h' }, h('h1', { text: 'Results and setup' }),
         h('div', { class: 'row' },
-          h('button', { class: 'btn', text: 'Export CSV', onclick: () => { const r = exportRows(), esc = v => '"' + String(v).replace(/"/g, '""') + '"'; download(`five-dials-${cfg.room}.csv`, ['phone,poll,question,answer,time', ...r.map(x => [x.phone, x.poll, x.question, x.answer, x.time].map(esc).join(','))].join('\n'), 'text/csv'); } }),
+          h('button', { class: 'btn', text: 'Export CSV', onclick: () => { const r = exportRows(), esc = v => '"' + String(v).replace(/"/g, '""') + '"'; download(`same-model-${cfg.room}.csv`, ['phone,poll,question,answer,time', ...r.map(x => [x.phone, x.poll, x.question, x.answer, x.time].map(esc).join(','))].join('\n'), 'text/csv'); } }),
           h('button', { class: 'btn', text: 'Copy as JSON', onclick: e => copy(JSON.stringify(exportRows(), null, 1), e.currentTarget) }),
           h('button', { class: 'btn pri', text: 'Back to slides', onclick: togglePanel }))),
       h('div', { class: 'tiles' },
@@ -3457,7 +3459,7 @@ function startDeck() {
           h('button', { class: 'btn warn', text: armed ? 'Really start empty? Export first.' : 'Start a new session', onclick: () => { if (!armed) { armed = true; drawPanel(); setTimeout(() => { armed = false; if (!panel.hidden) drawPanel(); }, 4000); return; } armed = false; cfg.room = rid(7); cfg.hidden = []; hiddenWords.clear(); saveCfg(); store.clear(); firstSeen.clear(); t0 = null; connect(); drawQR(); go(0); drawPanel(); } })),
           h('p', { class: 'help', style: 'margin-top:12px', text: 'A new session gets a new QR code and an empty results board. Answers from this session stay in this browser until you clear its site data.' }))),
       h('div', null, h('h2', { text: 'Keys' }), h('div', { class: 'keysl' },
-        [['→ Space', 'next'], ['←', 'back'], ['↓ ↑', 'bonus poll, and back'], ['1–5', 'jump to a dial'], ['Home', 'first slide, clock reset'], ['A', 'this panel'], ['Q', 'big QR code'], ['D', 'demo data'], ['T', 'timer'], ['F', 'full screen'], ['L', 'bright or dark room'], ['M', 'calm motion']].map(([k, t]) => h('div', null, h('kbd', { text: k }), t)))),
+        [['→ Space', 'next'], ['←', 'back'], ['↓ ↑', 'bonus poll, and back'], ['1–5', 'jump to a question'], ['Home', 'first slide, clock reset'], ['A', 'this panel'], ['Q', 'big QR code'], ['D', 'demo data'], ['T', 'timer'], ['F', 'full screen'], ['L', 'bright or dark room'], ['M', 'calm motion']].map(([k, t]) => h('div', null, h('kbd', { text: k }), t)))),
     );
     const keepScroll = panel.scrollTop, focusId = document.activeElement && document.activeElement.id;
     if (focusId === 'fbUrl') return;           // don't redraw under a field being typed in
