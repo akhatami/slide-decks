@@ -178,6 +178,7 @@ body.is-deck{overflow:hidden}
 .dot-s.ok{background:var(--acc);box-shadow:0 0 12px var(--acc)}
 #hudTime.over{color:var(--hot)}
 #hudDemo{color:var(--hot);font-weight:600}
+#hudWall{color:var(--acc);font-weight:600}
 #hudHint{color:var(--dim)}
 
 /* qr */
@@ -287,6 +288,84 @@ body.is-phone{overflow-x:hidden;overflow-y:auto;background:
 }
 :root[data-calm] .slide,:root[data-calm] .slide.on{transform:none;filter:none;transition:opacity .3s ease,visibility 0s}
 :root[data-calm] .w,:root[data-calm] .rise{filter:none;transform:none;transition:opacity .3s ease;transition-delay:.1s!important}
+
+/* ---------- lab wall (#w.<session>): six 640x360 screens in the middle of a 3840x1080 output ---------- */
+body.is-wall{overflow:hidden;background:#000;cursor:none}
+#wall{position:fixed;inset:0;overflow:hidden;background:#000}
+.wst{position:absolute;left:0;top:0;transform-origin:0 0;background:#000;overflow:hidden}
+.wband{position:absolute;left:0;overflow:hidden;background:var(--bg)}
+.wband::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(transparent 82%,color-mix(in srgb,var(--acc) 9%,transparent));}
+.wscr{position:absolute;top:0;height:100%;overflow:hidden}
+.wdial,.wjoin{background:var(--bg2)}
+.wl{position:absolute;inset:0;padding:38px 70px;display:flex;flex-direction:column;justify-content:center;gap:16px;opacity:0;transition:opacity .6s ease}
+.wl.on{opacity:1}
+.wl.on .rise{opacity:1;transform:none;transition-delay:calc(var(--i,0)*90ms + .25s)}
+.wl.on .w{opacity:1;filter:none;transform:none;transition-delay:calc(var(--i,0)*30ms + .2s)}
+.wbig{font:800 92px/1.02 var(--f-d);letter-spacing:-.025em;margin:0}
+.wsay{font:500 52px/1.12 var(--f-d);letter-spacing:-.02em;margin:0;max-width:2250px;text-wrap:balance}
+.wsub{font:400 27px/1.35 var(--f-b);color:var(--mute);margin:0;max-width:1800px}
+.wword{font:800 170px/1 var(--f-d);letter-spacing:-.01em;color:var(--acc);text-shadow:0 0 70px color-mix(in srgb,var(--acc) 45%,transparent);white-space:nowrap}
+.wcols{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:60px;align-items:center;height:100%}
+.wcols>div{display:flex;flex-direction:column;gap:16px;min-width:0}
+.wopts{display:flex;flex-wrap:wrap;gap:10px;margin:4px 0 0;padding:0;list-style:none}
+.wopts li{font:400 23px/1.2 var(--f-b);color:var(--mute);border:2px solid var(--line);padding:8px 16px}
+.wcount{display:flex;flex-direction:column;gap:6px}
+.wcount b{font:800 150px/.9 var(--f-d);color:var(--acc);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.wcount span{font:400 22px/1.2 var(--f-m);color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.wcount b.bump{animation:bump .5s var(--ease)}
+.wrh{display:flex;align-items:flex-end;justify-content:space-between;gap:40px}
+.wrh h2{font:500 30px/1.15 var(--f-d);letter-spacing:-.015em;margin:10px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrh .n{font:600 20px/1 var(--f-m);color:var(--mute);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;padding-bottom:4px}
+.wrh .n b{color:var(--fg);font-size:32px;font-variant-numeric:tabular-nums}
+.wl.wres{justify-content:flex-start;gap:12px}
+.wbars{display:flex;flex-direction:column;justify-content:center;gap:7px;flex:1}
+.wbar{display:grid;grid-template-columns:500px minmax(0,1fr) 110px 60px;align-items:center;gap:22px}
+.wbar .l{font:500 22px/1.1 var(--f-b);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wbar .t{height:26px;background:color-mix(in srgb,var(--line) 70%,transparent);position:relative;overflow:hidden}
+.wbar .t i{position:absolute;inset:0;background:var(--acc);transform-origin:left;transform:scaleX(var(--v,0));transition:transform 1s var(--ease);opacity:.55}
+.wbar .p{font:800 28px/1 var(--f-d);font-variant-numeric:tabular-nums}
+.wbar .c{font:400 18px/1 var(--f-m);color:var(--mute);font-variant-numeric:tabular-nums}
+.wbar.lead .t i{opacity:1;box-shadow:0 0 30px color-mix(in srgb,var(--acc) 70%,transparent)}
+.wbar.lead .p{color:var(--acc)}
+.wcloud{flex:1;min-height:0;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;align-items:baseline;gap:2px 34px;overflow:hidden}
+.wcloud span{font-family:var(--f-b);font-weight:700;line-height:1.15;white-space:nowrap;color:var(--fg)}
+.wcloud span.top{color:var(--acc)} .wcloud span.one{color:color-mix(in srgb,var(--fg) 74%,transparent)}
+.wempty{font:400 24px/1.4 var(--f-m);color:var(--dim);letter-spacing:.06em;text-align:center;flex:1;display:flex;align-items:center;justify-content:center}
+.wring{position:absolute;left:90px;top:50%;width:120px;height:120px;margin-top:-60px;border-radius:50%;border:3px solid var(--hot)}
+.wring::before,.wring::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--hot);animation:ring 2.4s ease-out infinite}
+.wring::after{animation-delay:1.2s}
+.wl.wstory{padding-left:290px}
+.wdia{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+.wdia .chip{padding:12px 20px;min-width:0} .wdia .chip b{font-size:22px} .wdia .chip small{font-size:16px}
+.wterm{border:2px solid var(--line);background:color-mix(in srgb,var(--panel) 85%,transparent);padding:20px 26px;display:flex;flex-direction:column;gap:12px}
+.wterm p{margin:0;font:400 23px/1.35 var(--f-m);color:var(--fg)}
+.wterm p::before{content:"> ";color:var(--acc)}
+.wnote{font:400 19px/1.35 var(--f-m);color:var(--hot);margin:0}
+.wdial .in{position:absolute;inset:0;padding:30px 44px;display:flex;flex-direction:column;justify-content:center;gap:12px;transition:opacity .6s ease}
+.wdial svg{width:120px;height:120px}
+.wdial .needle{transform-origin:32px 32px;transform:rotate(var(--ang,-165deg));transition:transform 1.1s var(--ease)}
+.wdial .dot{fill:var(--dim);transition:fill .6s} .wdial .dot.lit{fill:var(--acc)}
+.wdial .tag{font:600 17px/1.2 var(--f-m);letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+.wdial .dw{font:800 60px/1 var(--f-d);letter-spacing:-.01em;white-space:nowrap}
+.wjoin .in{position:absolute;inset:0;display:flex;align-items:center;gap:30px;padding:0 40px;transition:opacity .6s ease}
+.wqr{width:250px;height:250px;flex:none;background:#F4FAFF;padding:12px}
+.wqr svg{display:block;width:100%;height:100%}
+.wjoin .txt{display:flex;flex-direction:column;gap:10px;min-width:0}
+.wjoin .txt small{font:400 16px/1.3 var(--f-m);color:var(--mute);letter-spacing:.04em}
+.wjoin .ph{font:800 64px/1 var(--f-d);color:var(--fg);font-variant-numeric:tabular-nums}
+.wjoin .ph span{display:block;font:400 17px/1.4 var(--f-m);color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.wjoin .dot-s{position:absolute;right:16px;bottom:14px}
+.wfull .col{position:absolute;top:0;height:100%;padding:32px 44px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.wfull .col .d{font:800 30px/1 var(--f-d);color:var(--acc);letter-spacing:-.01em}
+.wfull .col .a{font:500 30px/1.15 var(--f-b);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.wfull .col small{font:400 16px/1.3 var(--f-m);color:var(--mute);letter-spacing:.04em}
+.wfull .col .v{font:800 56px/1 var(--f-d);font-variant-numeric:tabular-nums}
+.wmsg{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font:400 17px/1.3 var(--f-m);color:var(--hot);letter-spacing:.06em;white-space:nowrap;z-index:5}
+.wcal{position:absolute;inset:0;z-index:50;pointer-events:none}
+.wcal .s{position:absolute;border:4px solid #f0c040;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#f0c040;font:600 120px var(--f-m)}
+.wcal .s small{font:400 20px var(--f-m);margin-top:6px}
+.wcal .off{position:absolute;left:0;right:0;background:repeating-linear-gradient(45deg,#222 0 20px,#111 20px 40px);color:#777;font:400 30px var(--f-m);display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
@@ -305,6 +384,7 @@ body.is-phone{overflow-x:hidden;overflow-y:auto;background:
       </div>
       <div class="hl-r">
         <span id="hudDemo" hidden>Demo data</span>
+        <span id="hudWall" hidden>Wall</span>
         <span id="hudHint"></span>
         <span id="hudTime" hidden>00:00</span>
         <span><i class="dot-s" id="hudDot"></i><span id="hudPhones">0 phones</span></span>
@@ -314,6 +394,8 @@ body.is-phone{overflow-x:hidden;overflow-y:auto;background:
   </div>
   <div id="panel" hidden></div>
 </div>
+
+<div id="wall" hidden></div>
 
 <div id="phone" hidden>
   <header class="ph-top"><span class="ph-brand">SAME MODEL, DIFFERENT PARADIGM</span><span class="ph-live" id="phLive" hidden>Following the screen</span></header>
@@ -2630,6 +2712,10 @@ const CONFIG = {
   // Empty = the zero-setup relay below, which is fine for trying it and for small rooms.
   firebaseUrl: '',
   relayServer: 'https://ntfy.sh',
+  // The lab wall (open the deck with #w.<session> on the workstation, see the A panel).
+  // Same geometry as the Lab Display Composer: a 3840x1080 output with six 640x360
+  // screens side by side in the middle band (y = 360 to 720).
+  wall: { width: 3840, height: 1080, bandY: 360, bandHeight: 360, screens: 6, screenWidth: 640 },
 };
 
 /* ================= content ================= */
@@ -2805,9 +2891,89 @@ function makeTransport(fb, room) {
   };
 }
 
+/* ================= the slide sequence (deck and wall) ================= */
+function buildSeq() {
+  const S = [];
+  S.push({ k: 'title' }, { k: 'hands' });
+  DIALS.forEach((d, i) => {
+    S.push({ k: 'chapter', d: i }, { k: 'poll', d: i, p: d.poll }, { k: 'results', d: i, p: d.poll, down: !!d.bonus });
+    if (d.bonus) S.push({ k: 'poll', d: i, p: d.bonus, bonus: true }, { k: 'results', d: i, p: d.bonus, bonus: true });
+    S.push({ k: 'story', d: i }, { k: 'insight', d: i }, { k: 'try', d: i });
+  });
+  S.push({ k: 'recap' }, { k: 'poll', p: 'p6' }, { k: 'results', p: 'p6' }, { k: 'final' });
+  return S;
+}
+
+/* ================= demo data (deck and wall) ================= */
+const DEMO = {
+  p1: ['fix my latex', 'rewrite this email', 'explain this error', 'summarize this paper', 'debug my code', 'reply to reviewer 2', 'fix my latex', 'debug my code', 'summarize this paper', 'regex for dates', 'plot this data', 'shorten my abstract', 'fix my latex', 'title for paper', 'cover letter help', 'explain transformers', 'python to rust', 'debug my code', 'dinner ideas', 'what is bayes'],
+  p5b: ['write my thesis', 'email my supervisor', 'submit a paper', 'review a paper', 'touch raw data', 'pick my method', 'sign anything', 'email my supervisor', 'write my thesis', 'cite for me', 'run on the cluster', 'talk to my mum', 'write my thesis', 'delete files', 'email my supervisor'],
+  p6: ['voice mode', 'mock defense', 'a project', 'the handoff', 'claude code', 'interview me', 'ask for the prompt', 'the handoff', 'mock defense', 'fresh chats', 'thesis folder', 'a scheduled task', 'claude code', 'the handoff', 'mock defense'],
+  p1b: [3, 5, 6, 2, 3, 1], p2: [9, 3, 4, 4, 3, 2], p2b: [8, 6, 3, 2], p3: [6, 7, 2, 3, 3], p3b: [5, 4, 8, 3], p4: [9, 7, 3, 1, 2], p5: [8, 9, 3, 2, 1],
+};
+const pickW = (w, rnd) => { let r = rnd() * w.reduce((a, b) => a + b, 0); for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i; } return 0; };
+// seeded, so the deck and the wall make up the very same answers
+function demoAnswer(pid, k) {
+  let x = hash(pid + '|' + k);
+  const rnd = () => { x = (x + 0x6D2B79F5) >>> 0; let t = Math.imul(x ^ (x >>> 15), 1 | x); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const P = POLLS[pid], d = 'demo' + String(k).padStart(4, '0'), w = DEMO[pid];
+  if (P.type === 'cloud') return { d, p: pid, v: w[k % w.length] };
+  if (P.type === 'multi') { const set = new Set([pickW(w, rnd)]); if (rnd() < .55) set.add(pickW(w, rnd)); if (k % 5 === 0) set.add(4); return { d, p: pid, v: [...set].join(',') }; }
+  return { d, p: pid, v: String(pid === 'p5' && k % 5 === 0 ? 2 + (k % 2) : pickW(w, rnd)) };
+}
+
+/* ================= transport: deck -> lab wall =================
+   The deck sends where it is (slide, demo, hidden words, room light) at most once per
+   change; the wall reads it. Relay: its own ntfy topic. Firebase: rooms/<room>/w. */
+function makeWallLink(fb, room) {
+  if (fb) {
+    const url = `${fb}/rooms/${room}/w.json`;
+    return {
+      push: st => fetch(url, { method: 'PUT', body: JSON.stringify(st) }).then(r => r.ok),
+      watch(on, status) {
+        let stop = false, timer, last = '';
+        const tick = async () => {
+          try { const r = await fetch(url, { cache: 'no-store' }); if (!r.ok) throw 0; const t = await r.text(); if (t !== last) { last = t; const j = JSON.parse(t); if (j) on(j); } status(true); }
+          catch { status(false); }
+          if (!stop) timer = setTimeout(tick, 800);
+        };
+        tick();
+        return () => { stop = true; clearTimeout(timer); };
+      },
+    };
+  }
+  const url = `${CONFIG.relayServer}/fivedials-${room}-wall`;
+  return {
+    push: st => fetch(url, { method: 'POST', body: JSON.stringify(st) }).then(r => r.ok),
+    watch(on, status) {
+      let stop = false, es = null, timer, newest = 0, seen = '';
+      const take = m => { try { if (m && m.event === 'message' && m.id !== seen && m.time >= newest) { newest = m.time; seen = m.id; on(JSON.parse(m.message)); } } catch {} };
+      // where the deck is right now, then live changes; a slow poll if the stream is blocked
+      const sweep = async () => {
+        try {
+          const r = await fetch(`${url}/json?poll=1&since=latest`, { cache: 'no-store' });
+          if (!r.ok) throw 0;
+          (await r.text()).split('\n').forEach(l => { if (l.trim()) { try { take(JSON.parse(l)); } catch {} } });
+          status(true);
+        } catch { status(false); }
+        if (!stop) timer = setTimeout(sweep, es && es.readyState === 1 ? 30000 : 4000);
+      };
+      try {
+        es = new EventSource(`${url}/sse`);
+        es.onopen = () => status(true);
+        es.onmessage = e => { try { take(JSON.parse(e.data)); } catch {} };
+      } catch {}
+      sweep();
+      return () => { stop = true; clearTimeout(timer); if (es) es.close(); };
+    },
+  };
+}
+
 /* ================= boot: phone or deck ================= */
 const jm = location.hash.match(/^#j\.([a-z0-9]{4,12})(?:\.([\w-]+))?$/);
+const wm = location.hash.match(/^#w\.([a-z0-9]{4,12})(?:\.([\w-]+))?$/);
 if (jm) startPhone(jm[1], cleanFb(b64d(jm[2] || '')) || cleanFb(CONFIG.firebaseUrl));
+else if (wm) startWall(wm[1], cleanFb(b64d(wm[2] || '')) || cleanFb(CONFIG.firebaseUrl));
 else startDeck();
 
 /* ================================================================
@@ -3080,14 +3246,7 @@ function startDeck() {
   })();
 
   /* ---- slides ---- */
-  const S = [];
-  S.push({ k: 'title' }, { k: 'hands' });
-  DIALS.forEach((d, i) => {
-    S.push({ k: 'chapter', d: i }, { k: 'poll', d: i, p: d.poll }, { k: 'results', d: i, p: d.poll, down: !!d.bonus });
-    if (d.bonus) S.push({ k: 'poll', d: i, p: d.bonus, bonus: true }, { k: 'results', d: i, p: d.bonus, bonus: true });
-    S.push({ k: 'story', d: i }, { k: 'insight', d: i }, { k: 'try', d: i });
-  });
-  S.push({ k: 'recap' }, { k: 'poll', p: 'p6' }, { k: 'results', p: 'p6' }, { k: 'final' });
+  const S = buildSeq();
 
   function words(str, start = 0) {
     const out = []; let i = start, hl = false;
@@ -3332,6 +3491,27 @@ function startDeck() {
   let rf = 0;
   function scheduleRefresh() { if (!rf) rf = setTimeout(() => { rf = 0; refreshAll(); }, 140); }
 
+  /* ---- lab wall: the six-screen display follows this deck ---- */
+  let wall = null, wallSent = '', wallTimer = 0, wallPause = 0;
+  const wallUrl = () => location.href.split('#')[0] + '#w.' + cfg.room + (cfg.fb ? '.' + b64e(cfg.fb) : '');
+  const wallState = () => JSON.stringify({ i: cur, demo: demoOn, hid: [...hiddenWords], br: !!cfg.bright });
+  function wallConnect() { wall = makeWallLink(cfg.fb, cfg.room); wallSent = ''; }
+  function wallSync() {
+    if (!wall || !cfg.wall || Date.now() < wallPause || wallState() === wallSent) return;
+    clearTimeout(wallTimer);
+    // wait until the slide settles, so clicking through five slides sends one message
+    wallTimer = setTimeout(() => {
+      const v = wallState(); if (v === wallSent) return;
+      wallSent = v;
+      wall.push(JSON.parse(v)).then(ok => { if (!ok) throw 0; }).catch(() => { wallSent = ''; wallPause = Date.now() + 8000; });
+    }, 350);
+  }
+  function wallMoved() {     // new session or database: tell the wall where to go next
+    if (wall && cfg.wall) wall.push({ mv: cfg.room, fb: cfg.fb ? b64e(cfg.fb) : '' }).catch(() => {});
+    wallConnect(); wallSync();
+  }
+  function wallToggle() { cfg.wall = !cfg.wall; saveCfg(); wallSent = ''; wallPause = 0; hud(); if (!panel.hidden) drawPanel(); }
+
   /* ---- hud ---- */
   const dots = $('#knobDots');
   [-120, -60, 0, 60, 120].forEach(a => { const r = a * Math.PI / 180; dots.append(document.createElementNS('http://www.w3.org/2000/svg', 'circle')); const c = dots.lastChild; c.setAttribute('class', 'dot'); c.setAttribute('cx', 32 + 27 * Math.sin(r)); c.setAttribute('cy', 32 - 27 * Math.cos(r)); c.setAttribute('r', 3); });
@@ -3345,6 +3525,8 @@ function startDeck() {
     const n = phones(); $('#hudPhones').textContent = n + (n === 1 ? ' phone' : ' phones');
     $('#hudDot').classList.toggle('ok', connected);
     $('#hudDemo').hidden = !demoOn;
+    $('#hudWall').hidden = !cfg.wall;
+    wallSync();
     const te = $('#hudTime'); te.hidden = !showTime || t0 == null;
     if (t0 != null) { const el = (Date.now() - t0) / 1000, until = s.d != null ? DIALS[s.d].until : cur < 2 ? 60 : CLOSE_UNTIL; te.textContent = fmt(el) + ' / ' + fmt(until); te.classList.toggle('over', el > until); }
   }
@@ -3362,19 +3544,6 @@ function startDeck() {
   }
 
   /* ---- demo data (never saved, never exported) ---- */
-  const DEMO = {
-    p1: ['fix my latex', 'rewrite this email', 'explain this error', 'summarize this paper', 'debug my code', 'reply to reviewer 2', 'fix my latex', 'debug my code', 'summarize this paper', 'regex for dates', 'plot this data', 'shorten my abstract', 'fix my latex', 'title for paper', 'cover letter help', 'explain transformers', 'python to rust', 'debug my code', 'dinner ideas', 'what is bayes'],
-    p5b: ['write my thesis', 'email my supervisor', 'submit a paper', 'review a paper', 'touch raw data', 'pick my method', 'sign anything', 'email my supervisor', 'write my thesis', 'cite for me', 'run on the cluster', 'talk to my mum', 'write my thesis', 'delete files', 'email my supervisor'],
-    p6: ['voice mode', 'mock defense', 'a project', 'the handoff', 'claude code', 'interview me', 'ask for the prompt', 'the handoff', 'mock defense', 'fresh chats', 'thesis folder', 'a scheduled task', 'claude code', 'the handoff', 'mock defense'],
-    p1b: [3, 5, 6, 2, 3, 1], p2: [9, 3, 4, 4, 3, 2], p2b: [8, 6, 3, 2], p3: [6, 7, 2, 3, 3], p3b: [5, 4, 8, 3], p4: [9, 7, 3, 1, 2], p5: [8, 9, 3, 2, 1],
-  };
-  const pickW = w => { let r = Math.random() * w.reduce((a, b) => a + b, 0); for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i; } return 0; };
-  function demoAnswer(pid, k) {
-    const P = POLLS[pid], d = 'demo' + String(k).padStart(4, '0'), w = DEMO[pid];
-    if (P.type === 'cloud') return { d, p: pid, v: w[k % w.length] };
-    if (P.type === 'multi') { const set = new Set([pickW(w)]); if (Math.random() < .55) set.add(pickW(w)); if (k % 5 === 0) set.add(4); return { d, p: pid, v: [...set].join(',') }; }
-    return { d, p: pid, v: String(pid === 'p5' && k % 5 === 0 ? 2 + (k % 2) : pickW(w)) };
-  }
   let trickle = 0;
   function demoTrickle(pid) {
     const my = ++trickle;
@@ -3442,12 +3611,21 @@ function startDeck() {
         h('div', { class: 'card' }, h('div', { class: 'link', text: joinUrl() }),
           h('div', { class: 'row', style: 'margin-top:10px' }, h('button', { class: 'btn', text: 'Copy link', onclick: e => copy(joinUrl(), e.currentTarget) })),
           LOCAL && h('p', { class: 'help', style: 'color:var(--hot);margin-top:10px', text: 'This page is open from your own computer, so phones cannot reach it. Put this file on any static host (GitHub Pages works) and open it from there.' }))),
+      h('div', null, h('h2', { text: 'Lab wall' }),
+        h('div', { class: 'card' },
+          h('p', { class: 'help', text: 'Six screens in a row show a matching view of every slide, with the live results. On the workstation, open this link in a browser and press F11. It stays the same between talks; after a new session the wall moves along by itself.' }),
+          h('div', { class: 'link', style: 'margin-top:10px', text: wallUrl() }),
+          h('div', { class: 'row', style: 'margin-top:10px' },
+            h('button', { class: 'btn' + (cfg.wall ? '' : ' pri'), text: cfg.wall ? 'Turn the wall off' : 'Turn the wall on', onclick: wallToggle }),
+            h('button', { class: 'btn', text: 'Copy link', onclick: e => copy(wallUrl(), e.currentTarget) }),
+            h('span', { class: 'help', text: cfg.wall ? 'On: every slide change goes to the wall (W).' : 'Off: nothing is sent (W).' })),
+          LOCAL && h('p', { class: 'help', style: 'color:var(--hot);margin-top:10px', text: 'This page is open from your own computer, so the workstation cannot open this link. Present from the hosted page (GitHub Pages) instead.' }))),
       h('div', null, h('h2', { text: 'Where answers travel' }),
         h('div', { class: 'card' },
           h('p', { class: 'help' }, 'Now using: ', h('b', { style: 'color:var(--fg)', text: cfg.fb ? 'your Firebase database' : 'the zero-setup public relay (ntfy.sh)' }), cfg.fb ? '. Phones follow the slide on screen.' : '. Good for trying it and for rooms up to about 25 phones on one Wi-Fi: the relay limits each network address to 250 answers a day. For a full room, add a free Firebase database below.'),
           h('div', { class: 'row', style: 'margin-top:14px;align-items:flex-end' },
             h('div', { class: 'field' }, h('label', { for: 'fbUrl', text: 'Firebase Realtime Database URL' }), fbIn),
-            h('button', { class: 'btn', text: 'Save', onclick: () => { const v = cleanFb(fbIn.value); if (fbIn.value.trim() && !v) { fbMsg.textContent = 'That is not a Firebase database URL. It ends in firebaseio.com or firebasedatabase.app.'; fbMsg.style.color = 'var(--hot)'; return; } cfg.fb = v; saveCfg(); connect(); drawQR(); drawPanel(); } })),
+            h('button', { class: 'btn', text: 'Save', onclick: () => { const v = cleanFb(fbIn.value); if (fbIn.value.trim() && !v) { fbMsg.textContent = 'That is not a Firebase database URL. It ends in firebaseio.com or firebasedatabase.app.'; fbMsg.style.color = 'var(--hot)'; return; } cfg.fb = v; saveCfg(); connect(); wallMoved(); drawQR(); drawPanel(); } })),
           fbMsg,
           h('p', { class: 'help', style: 'margin-top:12px', text: 'Setup, about three minutes: console.firebase.google.com → Add project → Build → Realtime Database → Create database → paste these rules in the Rules tab → copy the database URL here. Then show the QR again; the new link carries the database address.' }),
           h('pre', { class: 'code', text: '{ "rules": { "rooms": { "$room": { ".read": true, ".write": true } } } }' }))),
@@ -3456,10 +3634,10 @@ function startDeck() {
           h('button', { class: 'btn', text: demoOn ? 'Turn demo data off' : 'Rehearse with demo data', onclick: () => setDemo(!demoOn) }),
           h('button', { class: 'btn', text: cfg.bright ? 'Switch to dark room' : 'Switch to bright room', onclick: () => { cfg.bright = !cfg.bright; saveCfg(); cfg.bright ? root.dataset.room = 'bright' : delete root.dataset.room; BG.theme(); drawPanel(); } }),
           h('button', { class: 'btn', text: root.hasAttribute('data-calm') ? 'Full motion' : 'Calm motion', onclick: () => { root.toggleAttribute('data-calm'); drawPanel(); } }),
-          h('button', { class: 'btn warn', text: armed ? 'Really start empty? Export first.' : 'Start a new session', onclick: () => { if (!armed) { armed = true; drawPanel(); setTimeout(() => { armed = false; if (!panel.hidden) drawPanel(); }, 4000); return; } armed = false; cfg.room = rid(7); cfg.hidden = []; hiddenWords.clear(); saveCfg(); store.clear(); firstSeen.clear(); t0 = null; connect(); drawQR(); go(0); drawPanel(); } })),
+          h('button', { class: 'btn warn', text: armed ? 'Really start empty? Export first.' : 'Start a new session', onclick: () => { if (!armed) { armed = true; drawPanel(); setTimeout(() => { armed = false; if (!panel.hidden) drawPanel(); }, 4000); return; } armed = false; cfg.room = rid(7); cfg.hidden = []; hiddenWords.clear(); saveCfg(); store.clear(); firstSeen.clear(); t0 = null; connect(); wallMoved(); drawQR(); go(0); drawPanel(); } })),
           h('p', { class: 'help', style: 'margin-top:12px', text: 'A new session gets a new QR code and an empty results board. Answers from this session stay in this browser until you clear its site data.' }))),
       h('div', null, h('h2', { text: 'Keys' }), h('div', { class: 'keysl' },
-        [['→ Space', 'next'], ['←', 'back'], ['↓ ↑', 'bonus poll, and back'], ['1–5', 'jump to a question'], ['Home', 'first slide, clock reset'], ['A', 'this panel'], ['Q', 'big QR code'], ['D', 'demo data'], ['T', 'timer'], ['F', 'full screen'], ['L', 'bright or dark room'], ['M', 'calm motion']].map(([k, t]) => h('div', null, h('kbd', { text: k }), t)))),
+        [['→ Space', 'next'], ['←', 'back'], ['↓ ↑', 'bonus poll, and back'], ['1–5', 'jump to a question'], ['Home', 'first slide, clock reset'], ['A', 'this panel'], ['Q', 'big QR code'], ['D', 'demo data'], ['T', 'timer'], ['F', 'full screen'], ['L', 'bright or dark room'], ['M', 'calm motion'], ['W', 'lab wall on or off']].map(([k, t]) => h('div', null, h('kbd', { text: k }), t)))),
     );
     const keepScroll = panel.scrollTop, focusId = document.activeElement && document.activeElement.id;
     if (focusId === 'fbUrl') return;           // don't redraw under a field being typed in
@@ -3502,6 +3680,7 @@ function startDeck() {
       case 'f': (document.fullscreenElement ? document.exitFullscreen() : root.requestFullscreen())?.catch(() => {}); break;
       case 'l': cfg.bright = !cfg.bright; saveCfg(); cfg.bright ? root.dataset.room = 'bright' : delete root.dataset.room; BG.theme(); break;
       case 'm': root.toggleAttribute('data-calm'); break;
+      case 'w': wallToggle(); break;
     }
   });
   stage.addEventListener('click', e => {
@@ -3512,10 +3691,265 @@ function startDeck() {
   addEventListener('resize', () => { fit(); BG.resize(); if (S[cur].k === 'chapter') { BG.release(); formWord(S[cur]); } });
 
   /* ---- start ---- */
-  fit(); drawQR(); connect();
+  fit(); drawQR(); connect(); wallConnect();
   const pos = ls.get('fd:pos', null);
   if (pos && pos.room === cfg.room && pos.i > 0 && pos.i < S.length && Date.now() - (pos.at || 0) < 3 * 3600e3) { t0 = pos.t0 || null; go(pos.i); } else go(0);
-  window.__fd = { go, next, S, store, tally, cfg };
+  window.__fd = { go, next, S, store, tally, cfg, wallUrl };
+}
+
+/* ================================================================
+   LAB WALL: open the deck with #w.<session> on the workstation.
+   It follows the deck (sent through the same relay or Firebase as the phones)
+   and listens to the answers itself, so results are live on the wall too.
+   ================================================================ */
+function startWall(room, fb) {
+  document.body.classList.add('is-wall');
+  const root = document.documentElement, W = CONFIG.wall, SW = W.screenWidth, N = W.screens;
+  const host = $('#wall'); host.hidden = false;
+  document.title = 'Lab wall · Same Model, Different Paradigm';
+
+  /* ---- stage: the whole output, scaled to the window ---- */
+  const stage = h('div', { class: 'wst', style: `width:${W.width}px;height:${W.height}px` });
+  const band = h('div', { class: 'wband', style: `top:${W.bandY}px;height:${W.bandHeight}px;width:${N * SW}px` });
+  stage.append(band); host.append(stage);
+  const fit = () => {
+    const s = Math.min(innerWidth / W.width, innerHeight / W.height);
+    stage.style.transform = `translate(${(innerWidth - W.width * s) / 2}px,${(innerHeight - W.height * s) / 2}px) scale(${s})`;
+  };
+  addEventListener('resize', fit); fit();
+  const scr = (i, span, cls) => add(band, h('div', { class: 'wscr ' + (cls || ''), style: `left:${i * SW}px;width:${span * SW}px` })).lastChild;
+
+  // screen 1: which question · screens 2..N-1: the slide · screen N: join code and phones
+  const dialEl = scr(0, 1, 'wdial'), mainEl = scr(1, N - 2, 'wmain'), fullEl = scr(0, N - 1, 'wfull'), joinEl = scr(N - 1, 1, 'wjoin');
+  const msg = add(mainEl, h('div', { class: 'wmsg', hidden: true })).lastChild;
+
+  const knob = `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="17" fill="none" stroke="var(--mute)" stroke-width="2"/>` +
+    [-120, -60, 0, 60, 120].map(a => { const r = a * Math.PI / 180; return `<circle class="dot" cx="${32 + 27 * Math.sin(r)}" cy="${32 - 27 * Math.cos(r)}" r="3"/>`; }).join('') +
+    `<line class="needle" x1="32" y1="32" x2="32" y2="18" stroke="var(--acc)" stroke-width="3.5" stroke-linecap="square"/></svg>`;
+  const dialIn = add(dialEl, h('div', { class: 'in' })).lastChild;
+  dialIn.innerHTML = knob + '<div class="tag"></div><div class="dw"></div>';
+  const joinIn = add(joinEl, h('div', { class: 'in' })).lastChild;
+  const qrBox = h('div', { class: 'wqr' }), phEl = h('div', { class: 'ph' }), joinTxt = h('div', { class: 'txt' });
+  const dotEl = h('i', { class: 'dot-s' });
+  add(joinIn, qrBox, joinTxt); add(joinEl, dotEl);
+
+  /* ---- answers, the same way the deck counts them ---- */
+  const S = buildSeq();
+  const store = new Map(), hidden = new Set();
+  let demoOn = false, cur = -1, transport = null, stopA = null, link = null, stopW = null, okA = false, okW = false, gotState = false, lostSince = 0;
+  const joinUrl = () => location.href.split('#')[0] + '#j.' + room + (fb ? '.' + b64e(fb) : '');
+  function ingest(raw, demo) {
+    const a = checkAnswer(raw); if (!a) return;
+    const k = a.d + '|' + a.p, old = store.get(k);
+    if ((old && old.v === a.v) || store.size > 6000) return;
+    if (old) a.t = old.t;
+    if (demo) a.demo = true;
+    store.set(k, a); later();
+  }
+  const rowsOf = pid => [...store.values()].filter(a => a.p === pid && (demoOn || !a.demo));
+  function tally(pid) {
+    const P = POLLS[pid], rows = rowsOf(pid);
+    if (P.type === 'cloud') {
+      const m = new Map();
+      for (const a of rows) { const e = m.get(a.v) || { text: a.v, c: 0, t: a.t }; e.c++; e.t = Math.min(e.t, a.t); m.set(a.v, e); }
+      const all = [...m.values()].sort((a, b) => b.c - a.c || a.t - b.t);
+      return { n: rows.length, items: all.filter(e => !hidden.has(pid + '|' + e.text)) };
+    }
+    const c = P.opts.map(() => 0);
+    for (const a of rows) for (const i of a.v.split(',')) c[+i]++;
+    return { n: rows.length, c };
+  }
+  const phones = () => new Set([...store.values()].filter(a => demoOn || !a.demo).map(a => a.d)).size;
+  let trickle = 0;
+  function setDemo(on) {
+    demoOn = on; trickle++;
+    for (const [k, a] of store) if (a.demo) store.delete(k);
+    if (on) ORDER.forEach(pid => { for (let k = 0; k < 26; k++) ingest(demoAnswer(pid, k), true); });
+    later();
+  }
+  function demoTrickle(pid) {     // the deck lets demo answers drip in on poll slides; so does the wall
+    const my = ++trickle;
+    for (const [k, a] of store) if (a.demo && a.p === pid) store.delete(k);
+    let k = 0; const step = () => { if (my !== trickle || !demoOn || k >= 26) return; ingest(demoAnswer(pid, k++), true); setTimeout(step, 120 + Math.random() * 380); };
+    setTimeout(step, 1200); later();
+  }
+
+  /* ---- slides ---- */
+  function words(str) {
+    const out = []; let i = 0, hl = false;
+    str.split('*').forEach(part => {
+      part.split(/(\s+)/).forEach(tok => { if (!tok) return; out.push(/^\s+$/.test(tok) ? ' ' : h('span', { class: 'w' + (hl ? ' hl' : ''), style: `--i:${i++}`, text: tok })); });
+      hl = !hl;
+    });
+    return out;
+  }
+  const kick = (t, hot, i = 0) => h('div', { class: 'kick rise' + (hot ? ' hot' : ''), style: `--i:${i}`, text: t });
+  const rise = (el, i) => { el.classList.add('rise'); el.style.setProperty('--i', i); return el; };
+
+  function build(s) {
+    const D = s.d != null ? DIALS[s.d] : null;
+    const el = h('div', { class: 'wl w-' + s.k });
+    let live = null;
+    if (s.k === 'title') {
+      add(el, kick('Five questions'), h('h1', { class: 'wbig' }, words('Same model. Different *paradigm.*')),
+        rise(h('p', { class: 'wsub', text: 'How do we actually use Claude and GPT? A live experiment, with your phones.' }), 6));
+    } else if (s.k === 'hands') {
+      add(el, kick('No phones yet'), h('h1', { class: 'wsay' }, words('Hands up if you use AI *the same way* you did a year ago.')),
+        rise(h('p', { class: 'wsub', text: 'Look around.' }), 12));
+    } else if (s.k === 'chapter') {
+      add(el, kick(`Question 0${s.d + 1} of 05`), rise(h('div', { class: 'wword', text: D.word }), 2), rise(h('p', { class: 'wsub', style: 'color:var(--fg)', text: D.ask }), 5));
+    } else if (s.k === 'poll') {
+      const P = POLLS[s.p], num = h('b', { text: '0' });
+      add(el, h('div', { class: 'wcols' },
+        h('div', null, kick(`Poll ${LABEL[s.p]} · on your phone`), h('h1', { class: 'wsay' }, words(P.q)),
+          P.type === 'cloud' ? rise(h('p', { class: 'wsub', text: P.hint || '' }), 8) : rise(h('ul', { class: 'wopts' }, P.opts.map(o => h('li', { text: o }))), 8)),
+        rise(h('div', { class: 'wcount' }, num, h('span', { text: 'answers in' })), 10)));
+      let shown = 0;
+      live = () => { const n = rowsOf(s.p).length; if (n !== shown) { num.textContent = n; if (n > shown) { num.classList.remove('bump'); void num.offsetWidth; num.classList.add('bump'); } shown = n; } };
+    } else if (s.k === 'results') {
+      const P = POLLS[s.p], nEl = h('b', { text: '0' }), empty = h('div', { class: 'wempty', text: 'Waiting for the first answer…' });
+      el.classList.add('wres');
+      add(el, h('div', { class: 'wrh' }, h('div', { style: 'min-width:0' }, kick(`Results · poll ${LABEL[s.p]}`), rise(h('h2', { text: P.q }), 1)),
+        rise(h('div', { class: 'n' }, nEl, ' answers'), 2)), empty);
+      if (P.type === 'cloud') {
+        const box = add(el, h('div', { class: 'wcloud rise', style: '--i:3' })).lastChild;
+        live = () => {
+          const t = tally(s.p), list = t.items.slice(0, 36), mx = list.length ? list[0].c : 1;
+          nEl.textContent = t.n; empty.hidden = list.length > 0; box.hidden = !list.length;
+          const base = Math.max(26, Math.min(56, 300 / Math.sqrt(list.length || 1)));
+          const spans = list.map((it, r) => h('span', { class: r === 0 && it.c > 1 ? 'top' : it.c === 1 ? 'one' : '', text: it.text }));
+          box.replaceChildren(...spans);
+          // shrink everything together until the cloud fits the screens
+          for (let k = 1; k > .3; k *= .9) {
+            spans.forEach((sp, r) => sp.style.fontSize = Math.round(base * k * (1 + (mx > 1 ? (list[r].c - 1) / (mx - 1) : 0))) + 'px');
+            if (box.scrollHeight <= box.clientHeight + 1) break;
+          }
+        };
+      } else {
+        const rows = P.opts.map(o => { const p = h('span', { class: 'p', text: '0%' }), c = h('span', { class: 'c', text: '0' }); return { el: h('div', { class: 'wbar' }, h('span', { class: 'l', text: o }), h('span', { class: 't' }, h('i')), p, c), p, c }; });
+        const bars = add(el, h('div', { class: 'wbars rise', style: '--i:3' }, rows.map(r => r.el))).lastChild;
+        live = () => {
+          const t = tally(s.p), mx = Math.max(...t.c); nEl.textContent = t.n; empty.hidden = t.n > 0; bars.hidden = !t.n;
+          rows.forEach((r, i) => { r.el.style.setProperty('--v', t.n ? t.c[i] / Math.max(mx, 1) : 0); r.el.classList.toggle('lead', t.n > 0 && t.c[i] === mx); r.p.textContent = pct(t.c[i], t.n) + '%'; r.c.textContent = t.c[i]; });
+        };
+      }
+    } else if (s.k === 'story') {
+      el.classList.add('wstory');
+      add(el, h('div', { class: 'wring' }), kick('Your turn', true), h('h1', { class: 'wsay' }, words(D.story)), rise(h('p', { class: 'wsub', text: 'One story. Thirty seconds.' }), 12));
+    } else if (s.k === 'insight') {
+      const dia = rise(h('div', { class: 'wdia' }), 12);
+      D.dia.forEach((c, i) => { if (i) dia.append(h('span', { class: 'arrow', text: '→' })); dia.append(h('div', { class: 'chip' + (c[2] ? ' far' : '') }, h('b', { text: c[0] }), h('small', { text: c[1] }))); });
+      add(el, kick('Insight · ' + D.word), h('h1', { class: 'wsay' }, words(D.insight)), dia);
+    } else if (s.k === 'try') {
+      add(el, h('div', { class: 'wcols', style: 'grid-template-columns:minmax(0,1fr) 1250px' },
+        h('div', null, kick('Try this'), h('h1', { class: 'wsay' }, words(D.tryTitle)), rise(h('p', { class: 'wsub', text: D.trySub }), 4),
+          D.note && rise(h('p', { class: 'wnote', text: D.note }), 8)),
+        rise(h('div', { class: 'wterm' }, D.prompts.map(t => h('p', { text: t }))), 6)));
+    } else if (s.k === 'recap') {
+      // one screen per question, across the dial screen too
+      el.classList.add('wrecap'); el.style.padding = '0';
+      live = () => el.replaceChildren(...DIALS.map((d, i) => {
+        const P = POLLS[d.poll], t = tally(d.poll); let a = 'No answers yet', sub = '', v = '';
+        if (t.n && P.type === 'cloud') { const top = t.items[0]; if (top) { a = '“' + top.text + '”'; sub = top.c > 1 ? `most common of ${t.items.length} answers` : `one of ${t.items.length} answers`; v = top.c > 1 ? top.c + '×' : ''; } }
+        else if (t.n) { const mx = Math.max(...t.c), j = t.c.indexOf(mx); a = P.opts[j]; sub = P.type === 'multi' ? 'most picked' : 'most common'; v = pct(mx, t.n) + '%'; }
+        return h('div', { class: 'col', style: `left:${i * SW}px;width:${SW}px` }, h('div', { class: 'd', text: `0${i + 1} ${d.word}` }),
+          h('div', { class: 'a', text: a }), sub && h('small', { text: sub }), h('div', { class: 'v', text: v }));
+      }));
+    } else if (s.k === 'final') {
+      add(el, kick('Five questions later'), h('h1', { class: 'wbig', style: 'font-size:84px' }, words('Same model for everyone here. The paradigm is *yours.*')),
+        rise(h('p', { class: 'wsub', text: 'Thank you.' }), 12));
+    }
+    return { el, live };
+  }
+
+  let layer = null;
+  function show(i) {
+    const s = S[i]; if (!s) return;
+    const full = s.k === 'recap' && N - 1 >= DIALS.length;
+    const b = build(s), box = full ? fullEl : mainEl;
+    const old = layer; layer = b;
+    box.append(b.el); if (b.live) b.live();
+    void b.el.offsetWidth; b.el.classList.add('on');
+    if (old) { old.el.classList.remove('on'); setTimeout(() => old.el.remove(), 700); }
+    dialIn.style.opacity = full ? 0 : 1;
+    // dial screen: same knob as the deck's corner
+    const di = s.d != null ? s.d : (i < 2 ? -1 : 5);
+    dialIn.style.setProperty('--ang', (di < 0 ? -165 : di > 4 ? 165 : -120 + di * 60) + 'deg');
+    dialIn.querySelectorAll('.dot').forEach((c, j) => c.classList.toggle('lit', (j <= di && di < 5) || di === 5));
+    dialIn.querySelector('.tag').textContent = i < 2 ? 'Five questions' : s.d != null ? `Question 0${s.d + 1} of 05` : 'Close';
+    const dw = dialIn.querySelector('.dw'), word = i < 2 ? 'LIVE' : s.d != null ? DIALS[s.d].word : 'CLOSE';
+    dw.textContent = word; dw.style.fontSize = Math.min(76, Math.floor(552 / (word.length * .86))) + 'px';
+    // join screen: hidden before the phones come out, like the deck
+    joinIn.style.opacity = (s.k === 'title' || s.k === 'hands') ? 0 : 1;
+    if (demoOn && s.k === 'poll') demoTrickle(s.p);
+    refresh();
+  }
+  function refresh() {
+    if (layer && layer.live) layer.live();
+    const n = phones();
+    joinTxt.replaceChildren(h('div', { class: 'kick', text: 'Scan to answer' }), h('small', { text: 'No app. No login.' }),
+      h('div', { class: 'ph' }, String(n), h('span', { text: n === 1 ? 'phone' : 'phones' })));
+    dotEl.classList.toggle('ok', okA && okW);
+    const lost = !(okA && okW);
+    if (!lost) lostSince = 0; else if (!lostSince) lostSince = Date.now();
+    msg.hidden = !(lost && Date.now() - lostSince > 8000) && gotState;
+    msg.textContent = !gotState ? 'Waiting for the deck · on the laptop press W (or A → Lab wall → Turn the wall on)' : 'No connection to the relay · check this computer’s internet';
+    msg.style.color = gotState ? 'var(--hot)' : 'var(--mute)';
+  }
+  let rf = 0;
+  function later() { if (!rf) rf = setTimeout(() => { rf = 0; refresh(); }, 150); }
+  setInterval(refresh, 2000);
+
+  function drawQR() {
+    const q = qrcode(0, 'M'); q.addData(joinUrl()); q.make();
+    const n = q.getModuleCount(), m = 2; let d = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + m} ${r + m}h1v1h-1z`;
+    qrBox.innerHTML = `<svg viewBox="0 0 ${n + m * 2} ${n + m * 2}" shape-rendering="crispEdges" role="img" aria-label="QR code to join"><path d="${d}" fill="#04121C"/></svg>`;
+  }
+
+  /* ---- following the deck ---- */
+  function onState(st) {
+    if (st.mv) {          // the deck started a new session or moved to Firebase: follow it
+      room = String(st.mv).replace(/[^a-z0-9]/g, '').slice(0, 12); fb = cleanFb(b64d(st.fb || '')) || cleanFb(CONFIG.firebaseUrl);
+      history.replaceState(null, '', '#w.' + room + (fb ? '.' + b64e(fb) : ''));
+      store.clear(); cur = -1; connect(); return;
+    }
+    gotState = true;
+    st.br ? root.dataset.room = 'bright' : delete root.dataset.room;
+    hidden.clear(); (st.hid || []).forEach(x => hidden.add(String(x)));
+    if (!!st.demo !== demoOn) setDemo(!!st.demo);
+    const i = Math.max(0, Math.min(S.length - 1, Number(st.i) || 0));
+    if (i !== cur) { cur = i; show(i); } else refresh();
+  }
+  function connect() {
+    if (stopA) stopA(); if (stopW) stopW();
+    okA = okW = false; drawQR();
+    transport = makeTransport(fb, room);
+    stopA = transport.listen(a => ingest(a, false), ok => { okA = ok; later(); });
+    link = makeWallLink(fb, room);
+    stopW = link.watch(onState, ok => { okW = ok; later(); });
+  }
+
+  /* ---- keys: C screen numbers, F full screen ---- */
+  let cal = null;
+  function calibrate() {
+    if (cal) { cal.remove(); cal = null; return; }
+    cal = h('div', { class: 'wcal' },
+      h('div', { class: 'off', style: `top:0;height:${W.bandY}px`, text: 'outside the screens (not visible)' }),
+      h('div', { class: 'off', style: `top:${W.bandY + W.bandHeight}px;bottom:0`, text: 'outside the screens (not visible)' }),
+      Array.from({ length: N }, (_, i) => h('div', { class: 's', style: `left:${i * SW}px;width:${SW}px;top:${W.bandY}px;height:${W.bandHeight}px` }, String(i + 1), h('small', { text: `${SW}×${W.bandHeight} at x ${i * SW}` }))));
+    stage.append(cal);
+  }
+  addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k === 'c') calibrate();
+    else if (k === 'f') (document.fullscreenElement ? document.exitFullscreen() : root.requestFullscreen())?.catch(() => {});
+  });
+  addEventListener('click', () => { if (!document.fullscreenElement) root.requestFullscreen()?.catch(() => {}); });
+  let ct; addEventListener('mousemove', () => { document.body.style.cursor = 'default'; clearTimeout(ct); ct = setTimeout(() => document.body.style.cursor = '', 1500); });
+
+  show(0); connect(); refresh();
+  window.__wall = { onState, show, store, get cur() { return cur; } };
 }
 })();
 </script>
